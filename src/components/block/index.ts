@@ -900,30 +900,58 @@ export default class Block extends EventsDispatcher<BlockEvents> {
        */
       const everyRecordIsMutationFree = mutationsOrInputEvent.length > 0 && mutationsOrInputEvent.every((record) => {
         const { addedNodes, removedNodes, target, type, attributeName} = record;
+        console.log('mutation record====', record);
         if (type == "attributes" && attributeName == "class") {
-          const t = (target as HTMLElement);
-          // 过滤手动忽略的class变化
-          if (t?.classList?.contains("ignore-class-mutation")) {
-            return true;
-          }
-          // 过滤column中的块聚焦的改变的class变化
-          if (t?.classList?.contains("ce-block")) {
-            return true;
+          const classList = (target as HTMLElement)?.classList;
+          if (classList){
+            // 过滤手动忽略的class变化
+            if (classList.contains("ignore-class-mutation")) {
+              console.log('mutation record==== ignore-class-mutation');
+              return true;
+            }
+            // 过滤column中的块聚焦的改变的class变化
+            if (classList.contains("ce-block")) {
+              console.log('mutation record==== ce-block');
+              return true;
+            }
+            // 过滤column中editor的class变化
+            if (classList.contains("codex-editor")
+              ||classList.contains("codex-editor__redactor")
+              ||classList.contains("codex-editor-overlay")
+              ||classList.contains("ce-inline-tool")
+              ||classList.contains("ce-inline-tool-input")
+            ) {
+              console.log('mutation record==== editor的class变化');
+              return true;
+            }
           }
         }
+
+        if (type == "childList"){
+          const classList = (target as HTMLElement)?.classList;
+          // column中内联工具按钮增加
+          if (classList.contains("ce-inline-tool")){
+            console.log('mutation record==== ce-inline-tool');
+            return true;
+          }
+
+        }
+
         const changedNodes = [
           ...Array.from(addedNodes),
           ...Array.from(removedNodes),
           target,
         ];
 
-        return changedNodes.some((node) => {
+        const hasMutationFree = changedNodes.some((node) => {
           if (!$.isElement(node)) {
             return false;
           }
 
           return (node as HTMLElement).dataset.mutationFree === 'true';
         });
+        console.log('hasMutationFree=====', hasMutationFree);
+        return hasMutationFree;
       });
 
       shouldFireUpdate = !everyRecordIsMutationFree;
