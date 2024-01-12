@@ -899,7 +899,18 @@ export default class Block extends EventsDispatcher<BlockEvents> {
        *    — we should fire 'didMutated' event in that case
        */
       const everyRecordIsMutationFree = mutationsOrInputEvent.length > 0 && mutationsOrInputEvent.every((record) => {
-        const { addedNodes, removedNodes, target } = record;
+        const { addedNodes, removedNodes, target, type, attributeName} = record;
+        if (type == "attributes" && attributeName == "class") {
+          const t = (target as HTMLElement);
+          // 过滤手动忽略的class变化
+          if (t?.classList?.contains("ignore-class-mutation")) {
+            return true;
+          }
+          // 过滤column中的块聚焦的改变的class变化
+          if (t?.classList?.contains("ce-block")) {
+            return true;
+          }
+        }
         const changedNodes = [
           ...Array.from(addedNodes),
           ...Array.from(removedNodes),
