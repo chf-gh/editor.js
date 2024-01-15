@@ -900,25 +900,24 @@ export default class Block extends EventsDispatcher<BlockEvents> {
        */
       const everyRecordIsMutationFree = mutationsOrInputEvent.length > 0 && mutationsOrInputEvent.every((record) => {
         const { addedNodes, removedNodes, target, type, attributeName} = record;
-        if (type == "attributes" && attributeName == "class") {
-          const classList = (target as HTMLElement)?.classList;
-          if (classList){
-            // 过滤手动忽略的class变化
-            if (classList.contains("ignore-class-mutation")) {
-              return true;
-            }
-            // 过滤column中的块聚焦的改变的class变化
-            if (classList.contains("ce-block")) {
-              return true;
-            }
-            // 过滤column中editor的class变化
-            if (classList.contains("codex-editor")
-              ||classList.contains("codex-editor__redactor")
-              ||classList.contains("codex-editor-overlay")
-              ||classList.contains("ce-inline-tool")
-              ||classList.contains("ce-inline-tool-input")
-            ) {
-              return true;
+        // console.log('record=====================', record);
+        if (type == "attributes") {
+          if (attributeName == "class") {
+            const classList = (target as HTMLElement)?.classList;
+            if (classList){
+              // 过滤column中editor的class变化
+              if (
+                // 过滤手动忽略的class变化
+                classList.contains("ignore-class-mutation")
+                // 过滤column中的块聚焦的改变的class变化
+                ||classList.contains("ce-block")
+                ||classList.contains("codex-editor")
+                ||classList.contains("codex-editor__redactor")
+                ||classList.contains("codex-editor-overlay")
+              ) {
+                // console.log('column中editor的class变化=====================', true);
+                return true;
+              }
             }
           }
         }
@@ -937,6 +936,23 @@ export default class Block extends EventsDispatcher<BlockEvents> {
           ...Array.from(removedNodes),
           target,
         ];
+        // 忽略toolbar的变化,column初始化时会添加toolbar和inline-toolbar
+        const hasToolbar = changedNodes.some((node) => {
+          if (!$.isElement(node)) {
+            return false;
+          }
+          if (
+            (node as HTMLElement).closest('.codex-editor-overlay') != null
+            || (node as HTMLElement).closest('.ce-toolbar') != null
+            || (node as HTMLElement).closest('.ce-inline-toolbar') != null){
+            return true;
+          }
+          return false;
+        });
+        console.log('hasMutatihasToolbar============', hasToolbar);
+        if (hasToolbar) {
+          return true;
+        }
 
         const hasMutationFree = changedNodes.some((node) => {
           if (!$.isElement(node)) {
@@ -945,6 +961,7 @@ export default class Block extends EventsDispatcher<BlockEvents> {
 
           return (node as HTMLElement).dataset.mutationFree === 'true';
         });
+        console.log('hasMutationFree=====================', hasMutationFree,record);
         return hasMutationFree;
       });
 
