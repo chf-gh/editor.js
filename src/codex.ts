@@ -10,6 +10,7 @@ import '@babel/register';
 import './components/polyfills';
 import Core from './components/core';
 import * as _ from './components/utils';
+import {emitter} from './components/emitter';
 
 declare const VERSION: string;
 
@@ -41,6 +42,8 @@ export default class EditorJS {
    * @param {EditorConfig|string|undefined} [configuration] - user configuration
    */
   constructor(configuration?: EditorConfig|string) {
+    // 自定义的事件触发器
+    this.emitter = emitter;
     /**
      * Set default onReady function
      */

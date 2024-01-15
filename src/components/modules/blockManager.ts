@@ -21,6 +21,7 @@ import { BlockChanged } from '../events';
 import { clean } from '../utils/sanitizer';
 import { convertStringToBlockData } from '../utils/blocks';
 import PromiseQueue from '../utils/promise-queue';
+import {emitter} from '../emitter';
 
 /**
  * @typedef {BlockManager} BlockManager
@@ -960,6 +961,8 @@ export default class BlockManager extends Module {
    * @param detailData - additional data to pass with change event
    */
   private blockDidMutated<Type extends BlockMutationType>(mutationType: Type, block: Block, detailData: BlockMutationEventDetailWithoutTarget<Type>): Block {
+    // 自定义内容修改的事件
+    emitter.emit('editor-change');
     const event = new CustomEvent(mutationType, {
       detail: {
         target: new BlockAPI(block),
