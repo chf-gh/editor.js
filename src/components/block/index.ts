@@ -901,9 +901,13 @@ export default class Block extends EventsDispatcher<BlockEvents> {
       const everyRecordIsMutationFree = mutationsOrInputEvent.length > 0 && mutationsOrInputEvent.every((record) => {
         const { addedNodes, removedNodes, target, type, attributeName} = record;
         console.log('record=====================', record);
-        if (type == "attributes") {
-          if (attributeName == "class") {
-            const classList = (target as HTMLElement)?.classList;
+        const classList = (target as HTMLElement)?.classList;
+        // 忽略指定的类
+        if (classList && classList.contains('ignore-class-mutation')){
+          return true;
+        }
+        if (type == 'attributes') {
+          // if (attributeName == "class") {
             if (classList){
               // 过滤column中editor的class变化
               if (
@@ -919,16 +923,14 @@ export default class Block extends EventsDispatcher<BlockEvents> {
                 return true;
               }
             }
-          }
+          // }
         }
 
-        if (type == "childList"){
-          const classList = (target as HTMLElement)?.classList;
+        if (type == 'childList'){
           // column中内联工具按钮增加
-          if (classList.contains("ce-inline-tool")){
+          if (classList && classList.contains('ce-inline-tool')){
             return true;
           }
-
         }
 
         const changedNodes = [
