@@ -900,7 +900,7 @@ export default class Block extends EventsDispatcher<BlockEvents> {
        */
       const everyRecordIsMutationFree = mutationsOrInputEvent.length > 0 && mutationsOrInputEvent.every((record) => {
         const { addedNodes, removedNodes, target, type, attributeName} = record;
-        // console.log('record=====================', record);
+        console.log('record=====================', record);
         if (type == "attributes") {
           if (attributeName == "class") {
             const classList = (target as HTMLElement)?.classList;
@@ -949,7 +949,7 @@ export default class Block extends EventsDispatcher<BlockEvents> {
           }
           return false;
         });
-        console.log('hasMutatihasToolbar============', hasToolbar);
+        // console.log('hasMutatihasToolbar============', hasToolbar);
         if (hasToolbar) {
           return true;
         }
@@ -961,7 +961,7 @@ export default class Block extends EventsDispatcher<BlockEvents> {
 
           return (node as HTMLElement).dataset.mutationFree === 'true';
         });
-        console.log('hasMutationFree=====================', hasMutationFree,record);
+        // console.log('hasMutationFree=====================', hasMutationFree,record);
         return hasMutationFree;
       });
 
