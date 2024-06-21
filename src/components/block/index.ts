@@ -900,7 +900,7 @@ export default class Block extends EventsDispatcher<BlockEvents> {
        */
       const everyRecordIsMutationFree = mutationsOrInputEvent.length > 0 && mutationsOrInputEvent.every((record) => {
         const { addedNodes, removedNodes, target, type, attributeName} = record;
-        console.log('record=====================', record);
+        // console.log('record=====================', record);
         const classList = (target as HTMLElement)?.classList;
         // 忽略指定的类
         if (classList && classList.contains('ignore-class-mutation')){
