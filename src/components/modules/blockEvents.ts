@@ -53,6 +53,24 @@ export default class BlockEvents extends Module {
         this.tabPressed(event);
         break;
     }
+
+    /**
+     * We check for "key" here since on different keyboard layouts "/" can be typed as "Shift + 7" etc
+     *
+     * @todo probably using "beforeInput" event would be better here
+     */
+    if (event.key === '/' && !event.ctrlKey && !event.metaKey) {
+      this.slashPressed(event);
+    }
+
+    /**
+     * If user pressed "Ctrl + /" or "Cmd + /" — open Block Settings
+     * We check for "code" here since on different keyboard layouts there can be different keys in place of Slash.
+     */
+    if (event.code === 'Slash' && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      this.commandSlashPressed();
+    }
   }
 
   /**
@@ -86,7 +104,6 @@ export default class BlockEvents extends Module {
       const isShortcut = event.ctrlKey || event.metaKey || event.altKey || event.shiftKey;
 
       if (!isShortcut) {
-        this.Editor.BlockManager.clearFocused();
         this.Editor.BlockSelection.clearSelection(event);
       }
     }
@@ -111,40 +128,6 @@ export default class BlockEvents extends Module {
      * Check if editor is empty on each keyup and add special css class to wrapper
      */
     this.Editor.UI.checkEmptiness();
-  }
-
-  /**
-   * Open Toolbox to leaf Tools
-   *
-   * @param {KeyboardEvent} event - tab keydown event
-   */
-  public tabPressed(event: KeyboardEvent): void {
-    /**
-     * Clear blocks selection by tab
-     */
-    this.Editor.BlockSelection.clearSelection(event);
-
-    const { BlockManager, InlineToolbar, ConversionToolbar } = this.Editor;
-    const currentBlock = BlockManager.currentBlock;
-
-    if (!currentBlock) {
-      return;
-    }
-
-    const isEmptyBlock = currentBlock.isEmpty;
-    const canOpenToolbox = currentBlock.tool.isDefault && isEmptyBlock;
-    const conversionToolbarOpened = !isEmptyBlock && ConversionToolbar.opened;
-    const inlineToolbarOpened = !isEmptyBlock && !SelectionUtils.isCollapsed && InlineToolbar.opened;
-    const canOpenBlockTunes = !conversionToolbarOpened && !inlineToolbarOpened;
-
-    /**
-     * For empty Blocks we show Plus button via Toolbox only for default Blocks
-     */
-    if (canOpenToolbox) {
-      this.activateToolbox();
-    } else if (canOpenBlockTunes) {
-      this.activateBlockSettings();
-    }
   }
 
   /**
@@ -214,6 +197,71 @@ export default class BlockEvents extends Module {
   }
 
   /**
+   * Tab pressed inside a Block.
+   *
+   * @param {KeyboardEvent} event - keydown
+   */
+  private tabPressed(event: KeyboardEvent): void {
+    const { InlineToolbar, ConversionToolbar, Caret } = this.Editor;
+
+    const isFlipperActivated = ConversionToolbar.opened || InlineToolbar.opened;
+
+    if (isFlipperActivated) {
+      return;
+    }
+
+    const isNavigated = event.shiftKey ? Caret.navigatePrevious(true) : Caret.navigateNext(true);
+
+    /**
+     * If we have next Block/input to focus, then focus it. Otherwise, leave native Tab behaviour
+     */
+    if (isNavigated) {
+      event.preventDefault();
+    }
+  }
+
+  /**
+   * '/' + 'command' keydown inside a Block
+   */
+  private commandSlashPressed(): void {
+    if (this.Editor.BlockSelection.selectedBlocks.length > 1) {
+      return;
+    }
+
+    this.activateBlockSettings();
+  }
+
+  /**
+   * '/' keydown inside a Block
+   *
+   * @param event - keydown
+   */
+  private slashPressed(event: KeyboardEvent): void {
+    const currentBlock = this.Editor.BlockManager.currentBlock;
+    const canOpenToolbox = currentBlock.isEmpty;
+
+    /**
+     * @todo Handle case when slash pressed when several blocks are selected
+     */
+
+    /**
+     * Toolbox will be opened only if Block is empty
+     */
+    if (!canOpenToolbox) {
+      return;
+    }
+
+    /**
+     * The Toolbox will be opened with immediate focus on the Search input,
+     * and '/' will be added in the search input by default — we need to prevent it and add '/' manually
+     */
+    event.preventDefault();
+    this.Editor.Caret.insertContentAtCaretPosition('/');
+
+    this.activateToolbox();
+  }
+
+  /**
    * ENTER pressed on block
    *
    * @param {KeyboardEvent} event - keydown
@@ -240,8 +288,12 @@ export default class BlockEvents extends Module {
 
     /**
      * Allow to create line breaks by Shift+Enter
+     *
+     * Note. On iOS devices, Safari automatically treats enter after a period+space (". |") as Shift+Enter
+     * (it used for capitalizing of the first letter of the next sentence)
+     * We don't need to lead soft line break in this case — new block should be created
      */
-    if (event.shiftKey) {
+    if (event.shiftKey && !_.isIosDevice) {
       return;
     }
 
@@ -345,7 +397,7 @@ export default class BlockEvents extends Module {
       return;
     }
 
-    const bothBlocksMergeable = areBlocksMergeable(currentBlock, previousBlock);
+    const bothBlocksMergeable = areBlocksMergeable(previousBlock, currentBlock);
 
     /**
      * If Blocks could be merged, do it
@@ -449,17 +501,14 @@ export default class BlockEvents extends Module {
   private mergeBlocks(targetBlock: Block, blockToMerge: Block): void {
     const { BlockManager, Caret, Toolbar } = this.Editor;
 
-    Caret.createShadow(targetBlock.pluginsContent);
+    Caret.createShadow(targetBlock.lastInput);
 
     BlockManager
       .mergeBlocks(targetBlock, blockToMerge)
       .then(() => {
-        window.requestAnimationFrame(() => {
-          /** Restore caret position after merge */
-          Caret.restoreCaret(targetBlock.pluginsContent as HTMLElement);
-          targetBlock.pluginsContent.normalize();
-          Toolbar.close();
-        });
+        /** Restore caret position after merge */
+        Caret.restoreCaret(targetBlock.pluginsContent as HTMLElement);
+        Toolbar.close();
       });
   }
 
@@ -481,9 +530,8 @@ export default class BlockEvents extends Module {
     }
 
     /**
-     * Close Toolbar and highlighting when user moves cursor
+     * Close Toolbar when user moves cursor
      */
-    this.Editor.BlockManager.clearFocused();
     this.Editor.Toolbar.close();
 
     const shouldEnableCBS = this.Editor.Caret.isAtEnd || this.Editor.BlockSelection.anyBlockSelected;
@@ -502,18 +550,20 @@ export default class BlockEvents extends Module {
        * Default behaviour moves cursor by 1 character, we need to prevent it
        */
       event.preventDefault();
-    } else {
-      /**
-       * After caret is set, update Block input index
-       */
-      _.delay(() => {
-        /** Check currentBlock for case when user moves selection out of Editor */
-        if (this.Editor.BlockManager.currentBlock) {
-          this.Editor.BlockManager.currentBlock.updateCurrentInput();
-        }
-      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-      }, 20)();
+
+      return;
     }
+
+    /**
+     * After caret is set, update Block input index
+     */
+    _.delay(() => {
+      /** Check currentBlock for case when user moves selection out of Editor */
+      if (this.Editor.BlockManager.currentBlock) {
+        this.Editor.BlockManager.currentBlock.updateCurrentInput();
+      }
+    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+    }, 20)();
 
     /**
      * Clear blocks selection by arrows
@@ -540,9 +590,8 @@ export default class BlockEvents extends Module {
     }
 
     /**
-     * Close Toolbar and highlighting when user moves cursor
+     * Close Toolbar when user moves cursor
      */
-    this.Editor.BlockManager.clearFocused();
     this.Editor.Toolbar.close();
 
     const shouldEnableCBS = this.Editor.Caret.isAtStart || this.Editor.BlockSelection.anyBlockSelected;
@@ -561,18 +610,20 @@ export default class BlockEvents extends Module {
        * Default behaviour moves cursor by 1 character, we need to prevent it
        */
       event.preventDefault();
-    } else {
-      /**
-       * After caret is set, update Block input index
-       */
-      _.delay(() => {
-        /** Check currentBlock for case when user ends selection out of Editor and then press arrow-key */
-        if (this.Editor.BlockManager.currentBlock) {
-          this.Editor.BlockManager.currentBlock.updateCurrentInput();
-        }
-      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-      }, 20)();
+
+      return;
     }
+
+    /**
+     * After caret is set, update Block input index
+     */
+    _.delay(() => {
+      /** Check currentBlock for case when user ends selection out of Editor and then press arrow-key */
+      if (this.Editor.BlockManager.currentBlock) {
+        this.Editor.BlockManager.currentBlock.updateCurrentInput();
+      }
+    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+    }, 20)();
 
     /**
      * Clear blocks selection by arrows
@@ -623,7 +674,6 @@ export default class BlockEvents extends Module {
    */
   private activateBlockSettings(): void {
     if (!this.Editor.Toolbar.opened) {
-      this.Editor.BlockManager.currentBlock.focused = true;
       this.Editor.Toolbar.moveAndOpen();
     }
 

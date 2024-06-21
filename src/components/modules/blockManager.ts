@@ -18,8 +18,8 @@ import { BlockAddedMutationType } from '../../../types/events/block/BlockAdded';
 import { BlockMovedMutationType } from '../../../types/events/block/BlockMoved';
 import { BlockChangedMutationType } from '../../../types/events/block/BlockChanged';
 import { BlockChanged } from '../events';
-import { clean } from '../utils/sanitizer';
-import { convertStringToBlockData } from '../utils/blocks';
+import { clean, sanitizeBlocks } from '../utils/sanitizer';
+import { convertStringToBlockData, isBlockConvertable } from '../utils/blocks';
 import PromiseQueue from '../utils/promise-queue';
 import {emitter} from '../emitter';
 
@@ -70,7 +70,7 @@ export default class BlockManager extends Module {
    *
    * @returns {Block}
    */
-  public get currentBlock(): Block {
+  public get currentBlock(): Block | undefined {
     return this._blocks[this.currentBlockIndex];
   }
 
@@ -371,10 +371,10 @@ export default class BlockManager extends Module {
    * @param newTool - new Tool name
    * @param data - new Tool data
    */
-  public replace(block: Block, newTool: string, data: BlockToolData): void {
+  public replace(block: Block, newTool: string, data: BlockToolData): Block {
     const blockIndex = this.getBlockIndex(block);
 
-    this.insert({
+    return this.insert({
       tool: newTool,
       data,
       index: blockIndex,
@@ -400,7 +400,16 @@ export default class BlockManager extends Module {
     });
 
     try {
-      block.call(BlockToolAPI.ON_PASTE, pasteEvent);
+      /**
+       * We need to call onPaste after Block will be ready
+       * because onPaste could change tool's root element, and we need to do that after block.watchBlockMutations() bound
+       * to detect tool root element change
+       *
+       * @todo make this.insert() awaitable and remove requestIdleCallback
+       */
+      window.requestIdleCallback(() => {
+        block.call(BlockToolAPI.ON_PASTE, pasteEvent);
+      });
     } catch (e) {
       _.log(`${toolName}: onPaste callback call is failed`, 'error', e);
     }
@@ -463,12 +472,40 @@ export default class BlockManager extends Module {
    * @returns {Promise} - the sequence that can be continued
    */
   public async mergeBlocks(targetBlock: Block, blockToMerge: Block): Promise<void> {
-    const blockToMergeData = await blockToMerge.data;
+    let blockToMergeData: BlockToolData | undefined;
 
-    if (!_.isEmpty(blockToMergeData)) {
-      await targetBlock.mergeWith(blockToMergeData);
+    /**
+     * We can merge:
+     * 1) Blocks with the same Tool if tool provides merge method
+     */
+    if (targetBlock.name === blockToMerge.name && targetBlock.mergeable) {
+      const blockToMergeDataRaw = await blockToMerge.data;
+
+      if (_.isEmpty(blockToMergeDataRaw)) {
+        console.error('Could not merge Block. Failed to extract original Block data.');
+
+        return;
+      }
+
+      const [ cleanData ] = sanitizeBlocks([ blockToMergeDataRaw ], targetBlock.tool.sanitizeConfig);
+
+      blockToMergeData = cleanData;
+
+    /**
+     * 2) Blocks with different Tools if they provides conversionConfig
+     */
+    } else if (targetBlock.mergeable && isBlockConvertable(blockToMerge, 'export') && isBlockConvertable(targetBlock, 'import')) {
+      const blockToMergeDataStringified = await blockToMerge.exportDataAsString();
+      const cleanData = clean(blockToMergeDataStringified, targetBlock.tool.sanitizeConfig);
+
+      blockToMergeData = convertStringToBlockData(cleanData, targetBlock.tool.conversionConfig);
     }
 
+    if (blockToMergeData === undefined) {
+      return;
+    }
+
+    await targetBlock.mergeWith(blockToMergeData);
     this.removeBlock(blockToMerge);
     this.currentBlockIndex = this._blocks.indexOf(targetBlock);
   }
@@ -591,10 +628,25 @@ export default class BlockManager extends Module {
   /**
    * Returns Block by passed index
    *
+   * If we pass -1 as index, the last block will be returned
+   * There shouldn't be a case when there is no blocks at all — at least one always should exist
+   */
+  public getBlockByIndex(index: -1): Block;
+
+  /**
+   * Returns Block by passed index.
+   *
+   * Could return undefined if there is no block with such index
+   */
+  public getBlockByIndex(index: number): Block | undefined;
+
+  /**
+   * Returns Block by passed index
+   *
    * @param {number} index - index to get. -1 to get last
    * @returns {Block}
    */
-  public getBlockByIndex(index): Block {
+  public getBlockByIndex(index: number): Block | undefined {
     if (index === -1) {
       index = this._blocks.length - 1;
     }
@@ -638,32 +690,6 @@ export default class BlockManager extends Module {
     if (index >= 0) {
       return this._blocks[index];
     }
-  }
-
-  /**
-   * Remove selection from all Blocks then highlight only Current Block
-   */
-  public highlightCurrentNode(): void {
-    /**
-     * Remove previous selected Block's state
-     */
-    this.clearFocused();
-
-    /**
-     * Mark current Block as selected
-     *
-     * @type {boolean}
-     */
-    this.currentBlock.focused = true;
-  }
-
-  /**
-   * Remove selection from all Blocks
-   */
-  public clearFocused(): void {
-    this.blocks.forEach((block) => {
-      block.focused = false;
-    });
   }
 
   /**
@@ -721,7 +747,11 @@ export default class BlockManager extends Module {
    * @param {Node} childNode - node to get Block by
    * @returns {Block}
    */
-  public getBlockByChildNode(childNode: Node): Block {
+  public getBlockByChildNode(childNode: Node): Block | undefined {
+    if (!childNode || childNode instanceof Node === false) {
+      return undefined;
+    }
+
     /**
      * If node is Text TextNode
      */
@@ -792,7 +822,7 @@ export default class BlockManager extends Module {
    * @param targetToolName - name of the Tool to convert to
    * @param blockDataOverrides - optional new Block data overrides
    */
-  public async convert(blockToConvert: Block, targetToolName: string, blockDataOverrides?: BlockToolData): Promise<void> {
+  public async convert(blockToConvert: Block, targetToolName: string, blockDataOverrides?: BlockToolData): Promise<Block> {
     /**
      * At first, we get current Block data
      */
@@ -837,7 +867,7 @@ export default class BlockManager extends Module {
       newBlockData = Object.assign(newBlockData, blockDataOverrides);
     }
 
-    this.replace(blockToConvert, replacingTool.name, newBlockData);
+    return this.replace(blockToConvert, replacingTool.name, newBlockData);
   }
 
   /**
@@ -846,7 +876,6 @@ export default class BlockManager extends Module {
    */
   public dropPointer(): void {
     this.currentBlockIndex = -1;
-    this.clearFocused();
   }
 
   /**

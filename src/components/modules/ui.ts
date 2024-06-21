@@ -15,6 +15,8 @@ import { mobileScreenBreakpoint } from '../utils';
 
 import styles from '../../styles/main.css?inline';
 import { BlockHovered } from '../events/BlockHovered';
+import { selectionChangeDebounceTimeout } from '../constants';
+import { EditorMobileLayoutToggled } from '../events';
 /**
  * HTML Elements used for UI
  */
@@ -120,7 +122,7 @@ export default class UI extends Module<UINodes> {
     /**
      * Detect mobile version
      */
-    this.checkIsMobile();
+    this.setIsMobile();
 
     /**
      * Make main UI elements
@@ -150,12 +152,20 @@ export default class UI extends Module<UINodes> {
      */
     if (!readOnlyEnabled) {
       /**
-       * Unbind all events
+       * Postpone events binding to the next tick to make sure all ui elements are ready
        */
-      this.enableModuleBindings();
+      window.requestIdleCallback(() => {
+        /**
+         * Bind events for the UI elements
+         */
+        this.enableModuleBindings();
+      }, {
+        timeout: 2000,
+      });
     } else {
       /**
-       * Bind events for the UI elements
+       * Unbind all events
+       *
        */
       this.disableModuleBindings();
     }
@@ -225,10 +235,21 @@ export default class UI extends Module<UINodes> {
   }
 
   /**
-   * Check for mobile mode and cache a result
+   * Check for mobile mode and save the result
    */
-  private checkIsMobile(): void {
-    this.isMobile = window.innerWidth < mobileScreenBreakpoint;
+  private setIsMobile(): void {
+    const isMobile = window.innerWidth < mobileScreenBreakpoint;
+
+    if (isMobile !== this.isMobile) {
+      /**
+       * Dispatch global event
+       */
+      this.eventsDispatcher.emit(EditorMobileLayoutToggled, {
+        isEnabled: this.isMobile,
+      });
+    }
+
+    this.isMobile = isMobile;
   }
 
   /**
@@ -295,6 +316,15 @@ export default class UI extends Module<UINodes> {
     });
 
     /**
+     * If user enabled Content Security Policy, he can pass nonce through the config
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/nonce
+     */
+    if (this.config.style && !_.isEmpty(this.config.style) && this.config.style.nonce) {
+      tag.setAttribute('nonce', this.config.style.nonce);
+    }
+
+    /**
      * Append styles at the top of HEAD tag
      */
     $.prepend(document.head, tag);
@@ -310,11 +340,17 @@ export default class UI extends Module<UINodes> {
 
     this.readOnlyMutableListeners.on(this.nodes.redactor, 'mousedown', (event: MouseEvent | TouchEvent) => {
       this.documentTouched(event);
-    }, true);
+    }, {
+      capture: true,
+      passive: true,
+    });
 
     this.readOnlyMutableListeners.on(this.nodes.redactor, 'touchstart', (event: MouseEvent | TouchEvent) => {
       this.documentTouched(event);
-    }, true);
+    }, {
+      capture: true,
+      passive: true,
+    });
 
     this.readOnlyMutableListeners.on(document, 'keydown', (event: KeyboardEvent) => {
       this.documentKeydown(event);
@@ -327,9 +363,11 @@ export default class UI extends Module<UINodes> {
     /**
      * Handle selection change to manipulate Inline Toolbar appearance
      */
-    this.readOnlyMutableListeners.on(document, 'selectionchange', () => {
+    const selectionChangeDebounced = _.debounce(() => {
       this.selectionChanged();
-    }, true);
+    }, selectionChangeDebounceTimeout);
+
+    this.readOnlyMutableListeners.on(document, 'selectionchange', selectionChangeDebounced, true);
 
     this.readOnlyMutableListeners.on(window, 'resize', () => {
       this.resizeDebouncer();
@@ -400,7 +438,7 @@ export default class UI extends Module<UINodes> {
     /**
      * Detect mobile version
      */
-    this.checkIsMobile();
+    this.setIsMobile();
   }
 
   /**
@@ -479,7 +517,9 @@ export default class UI extends Module<UINodes> {
     if (BlockSelection.anyBlockSelected && !Selection.isSelectionExists) {
       const selectionPositionIndex = BlockManager.removeSelectedBlocks();
 
-      Caret.setToBlock(BlockManager.insertDefaultBlockAtIndex(selectionPositionIndex, true), Caret.positions.START);
+      const newBlock = BlockManager.insertDefaultBlockAtIndex(selectionPositionIndex, true);
+
+      Caret.setToBlock(newBlock, Caret.positions.START);
 
       /** Clear selection */
       BlockSelection.clearSelection(event);
@@ -509,7 +549,7 @@ export default class UI extends Module<UINodes> {
 
     if (this.Editor.Toolbar.toolbox.opened) {
       this.Editor.Toolbar.toolbox.close();
-      this.Editor.Caret.setToBlock(this.Editor.BlockManager.currentBlock);
+      this.Editor.Caret.setToBlock(this.Editor.BlockManager.currentBlock, this.Editor.Caret.positions.END);
     } else if (this.Editor.BlockSettings.opened) {
       this.Editor.BlockSettings.close();
     } else if (this.Editor.ConversionToolbar.opened) {
@@ -528,6 +568,11 @@ export default class UI extends Module<UINodes> {
    */
   private enterPressed(event: KeyboardEvent): void {
     const { BlockManager, BlockSelection } = this.Editor;
+
+    if (this.someToolbarOpened) {
+      return;
+    }
+
     const hasPointerToBlock = BlockManager.currentBlockIndex >= 0;
 
     /**
@@ -563,12 +608,11 @@ export default class UI extends Module<UINodes> {
        */
       const newBlock = this.Editor.BlockManager.insert();
 
-      this.Editor.Caret.setToBlock(newBlock);
-
       /**
-       * And highlight
+       * Prevent default enter behaviour to prevent adding a new line (<div><br></div>) to the inserted block
        */
-      this.Editor.BlockManager.highlightCurrentNode();
+      event.preventDefault();
+      this.Editor.Caret.setToBlock(newBlock);
 
       /**
        * Move toolbar and show plus button because new Block is empty
@@ -616,8 +660,8 @@ export default class UI extends Module<UINodes> {
      * But allow clicking inside Block Settings.
      * Also, do not process clicks on the Block Settings Toggler, because it has own click listener
      */
-    const isClickedInsideBlockSettings = this.Editor.BlockSettings.nodes.wrapper.contains(target);
-    const isClickedInsideBlockSettingsToggler = this.Editor.Toolbar.nodes.settingsToggler.contains(target);
+    const isClickedInsideBlockSettings = this.Editor.BlockSettings.nodes.wrapper?.contains(target);
+    const isClickedInsideBlockSettingsToggler = this.Editor.Toolbar.nodes.settingsToggler?.contains(target);
     const doNotProcess = isClickedInsideBlockSettings || isClickedInsideBlockSettingsToggler;
 
     if (this.Editor.BlockSettings.opened && !doNotProcess) {
@@ -663,11 +707,6 @@ export default class UI extends Module<UINodes> {
      */
     try {
       this.Editor.BlockManager.setCurrentBlockByChildNode(clickedNode);
-
-      /**
-       * Highlight Current Node
-       */
-      this.Editor.BlockManager.highlightCurrentNode();
     } catch (e) {
       /**
        * If clicked outside first-level Blocks and it is not RectSelection, set Caret to the last empty Block
@@ -694,16 +733,9 @@ export default class UI extends Module<UINodes> {
    *      - otherwise, add a new empty Block and set a Caret to that
    */
   private redactorClicked(event: MouseEvent): void {
-    const { BlockSelection } = this.Editor;
-
     if (!Selection.isCollapsed) {
       return;
     }
-
-    const stopPropagation = (): void => {
-      event.stopImmediatePropagation();
-      event.stopPropagation();
-    };
 
     /**
      * case when user clicks on anchor element
@@ -713,7 +745,8 @@ export default class UI extends Module<UINodes> {
     const ctrlKey = event.metaKey || event.ctrlKey;
 
     if ($.isAnchor(element) && ctrlKey) {
-      stopPropagation();
+      event.stopImmediatePropagation();
+      event.stopPropagation();
 
       const href = element.getAttribute('href');
       const validUrl = _.getValidUrl(href);
@@ -723,10 +756,22 @@ export default class UI extends Module<UINodes> {
       return;
     }
 
+    this.processBottomZoneClick(event);
+  }
+
+  /**
+   * Check if user clicks on the Editor's bottom zone:
+   *  - set caret to the last block
+   *  - or add new empty block
+   *
+   * @param event - click event
+   */
+  private processBottomZoneClick(event: MouseEvent): void {
     const lastBlock = this.Editor.BlockManager.getBlockByIndex(-1);
+
     const lastBlockBottomCoord = $.offset(lastBlock.holder).bottom;
     const clickedCoord = event.pageY;
-
+    const { BlockSelection } = this.Editor;
     const isClickedBottom = event.target instanceof Element &&
       event.target.isEqualNode(this.nodes.redactor) &&
       /**
@@ -740,7 +785,8 @@ export default class UI extends Module<UINodes> {
       lastBlockBottomCoord < clickedCoord;
 
     if (isClickedBottom) {
-      stopPropagation();
+      event.stopImmediatePropagation();
+      event.stopPropagation();
 
       const { BlockManager, Caret, Toolbar } = this.Editor;
 
@@ -828,9 +874,6 @@ export default class UI extends Module<UINodes> {
 
     const isNeedToShowConversionToolbar = clickedOutsideBlockContent !== true;
 
-    /**
-     * @todo add debounce
-     */
     this.Editor.InlineToolbar.tryToShow(true, isNeedToShowConversionToolbar);
   }
 }

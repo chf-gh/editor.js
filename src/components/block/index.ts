@@ -6,7 +6,7 @@ import {
   SanitizerConfig,
   ToolConfig,
   ToolboxConfigEntry,
-  PopoverItem
+  PopoverItemParams
 } from '../../../types';
 
 import { SavedData } from '../../../types/data-formats';
@@ -25,7 +25,8 @@ import { TunesMenuConfigItem } from '../../../types/tools';
 import { isMutationBelongsToElement } from '../utils/mutations';
 import { EditorEventMap, FakeCursorAboutToBeToggled, FakeCursorHaveBeenSet, RedactorDomChanged } from '../events';
 import { RedactorDomChangedPayload } from '../events/RedactorDomChanged';
-import { convertBlockDataToString } from '../utils/blocks';
+import { convertBlockDataToString, isSameBlockData } from '../utils/blocks';
+import { PopoverItemType } from '../utils/popover';
 
 /**
  * Interface describes Block class constructor argument
@@ -111,7 +112,6 @@ export default class Block extends EventsDispatcher<BlockEvents> {
       wrapper: 'ce-block',
       wrapperStretched: 'ce-block--stretched',
       content: 'ce-block__content',
-      focused: 'ce-block--focused',
       selected: 'ce-block--selected',
       dropTarget: 'ce-block--drop-target',
     };
@@ -230,7 +230,6 @@ export default class Block extends EventsDispatcher<BlockEvents> {
     tunesData,
   }: BlockConstructorOptions, eventBus?: EventsDispatcher<EditorEventMap>) {
     super();
-
     this.name = tool.name;
     this.id = id;
     this.settings = tool.settings;
@@ -393,12 +392,19 @@ export default class Block extends EventsDispatcher<BlockEvents> {
   }
 
   /**
+   * If Block contains inputs, it is focusable
+   */
+  public get focusable(): boolean {
+    return this.inputs.length !== 0;
+  }
+
+  /**
    * Check block for emptiness
    *
    * @returns {boolean}
    */
   public get isEmpty(): boolean {
-    const emptyText = $.isEmpty(this.pluginsContent);
+    const emptyText = $.isEmpty(this.pluginsContent, '/');
     const emptyMedia = !this.hasMedia;
 
     return emptyText && emptyMedia;
@@ -427,22 +433,6 @@ export default class Block extends EventsDispatcher<BlockEvents> {
     ];
 
     return !!this.holder.querySelector(mediaTags.join(','));
-  }
-
-  /**
-   * Set focused state
-   *
-   * @param {boolean} state - 'true' to select, 'false' to remove selection
-   */
-  public set focused(state: boolean) {
-    this.holder.classList.toggle(Block.CSS.focused, state);
-  }
-
-  /**
-   * Get Block's focused state
-   */
-  public get focused(): boolean {
-    return this.holder.classList.contains(Block.CSS.focused);
   }
 
   /**
@@ -560,7 +550,7 @@ export default class Block extends EventsDispatcher<BlockEvents> {
    *
    * @returns {object}
    */
-  public async save(): Promise<void | SavedData> {
+  public async save(): Promise<undefined | SavedData> {
     const extractedBlock = await this.toolInstance.save(this.pluginsContent as HTMLElement);
     const tunesData: { [name: string]: BlockTuneData } = this.unavailableTunesData;
 
@@ -621,15 +611,29 @@ export default class Block extends EventsDispatcher<BlockEvents> {
   }
 
   /**
-   * Returns data to render in tunes menu.
-   * Splits block tunes settings into 2 groups: popover items and custom html.
+   * Returns data to render in Block Tunes menu.
+   * Splits block tunes into 2 groups: block specific tunes and common tunes
    */
-  public getTunes(): [PopoverItem[], HTMLElement] {
-    const customHtmlTunesContainer = document.createElement('div');
-    const tunesItems: TunesMenuConfigItem[] = [];
+  public getTunes(): {
+    toolTunes: PopoverItemParams[];
+    commonTunes: PopoverItemParams[];
+    } {
+    const toolTunesPopoverParams: TunesMenuConfigItem[] = [];
+    const commonTunesPopoverParams: TunesMenuConfigItem[] = [];
 
     /** Tool's tunes: may be defined as return value of optional renderSettings method */
     const tunesDefinedInTool = typeof this.toolInstance.renderSettings === 'function' ? this.toolInstance.renderSettings() : [];
+
+    if ($.isElement(tunesDefinedInTool)) {
+      toolTunesPopoverParams.push({
+        type: PopoverItemType.Html,
+        element: tunesDefinedInTool,
+      });
+    } else if (Array.isArray(tunesDefinedInTool)) {
+      toolTunesPopoverParams.push(...tunesDefinedInTool);
+    } else {
+      toolTunesPopoverParams.push(tunesDefinedInTool);
+    }
 
     /** Common tunes: combination of default tunes (move up, move down, delete) and third-party tunes connected via tunes api */
     const commonTunes = [
@@ -637,17 +641,24 @@ export default class Block extends EventsDispatcher<BlockEvents> {
       ...this.defaultTunesInstances.values(),
     ].map(tuneInstance => tuneInstance.render());
 
-    [tunesDefinedInTool, commonTunes].flat().forEach(rendered => {
-      if ($.isElement(rendered)) {
-        customHtmlTunesContainer.appendChild(rendered);
-      } else if (Array.isArray(rendered)) {
-        tunesItems.push(...rendered);
+    /** Separate custom html from Popover items params for common tunes */
+    commonTunes.forEach(tuneConfig => {
+      if ($.isElement(tuneConfig)) {
+        commonTunesPopoverParams.push({
+          type: PopoverItemType.Html,
+          element: tuneConfig,
+        });
+      } else if (Array.isArray(tuneConfig)) {
+        commonTunesPopoverParams.push(...tuneConfig);
       } else {
-        tunesItems.push(rendered);
+        commonTunesPopoverParams.push(tuneConfig);
       }
     });
 
-    return [tunesItems, customHtmlTunesContainer];
+    return {
+      toolTunes: toolTunesPopoverParams,
+      commonTunes: commonTunesPopoverParams,
+    };
   }
 
   /**
@@ -721,11 +732,8 @@ export default class Block extends EventsDispatcher<BlockEvents> {
     const blockData = await this.data;
     const toolboxItems = toolboxSettings;
 
-    return toolboxItems.find((item) => {
-      return Object.entries(item.data)
-        .some(([propName, propValue]) => {
-          return blockData[propName] && _.equals(blockData[propName], propValue);
-        });
+    return toolboxItems?.find((item) => {
+      return isSameBlockData(item.data, blockData);
     });
   }
 
@@ -747,6 +755,10 @@ export default class Block extends EventsDispatcher<BlockEvents> {
     const wrapper = $.make('div', Block.CSS.wrapper) as HTMLDivElement,
         contentNode = $.make('div', Block.CSS.content),
         pluginsContent = this.toolInstance.render();
+
+    if (import.meta.env.MODE === 'test') {
+      wrapper.setAttribute('data-cy', 'block-wrapper');
+    }
 
     /**
      * Export id to the DOM three
@@ -958,10 +970,13 @@ export default class Block extends EventsDispatcher<BlockEvents> {
 
         const hasMutationFree = changedNodes.some((node) => {
           if (!$.isElement(node)) {
-            return false;
+            /**
+             * "characterData" mutation record has Text node as a target, so we need to get parent element to check it for mutation-free attribute
+             */
+            node = node.parentElement;
           }
 
-          return (node as HTMLElement).dataset.mutationFree === 'true';
+          return node && (node as HTMLElement).closest('[data-mutation-free="true"]') !== null;
         });
         // console.log('hasMutationFree=====================', hasMutationFree,record);
         return hasMutationFree;
