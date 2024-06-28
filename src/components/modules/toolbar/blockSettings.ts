@@ -285,7 +285,7 @@ export default class BlockSettings extends Module<BlockSettingsNodes> {
 
         resultItems.push({
           icon: toolboxItem.icon,
-          title: toolboxItem.title,
+          title: I18n.t(I18nInternalNS.toolNames, toolboxItem.title || _.capitalize(toolName)),
           name: toolName,
           onActivate: async () => {
             const { BlockManager, BlockSelection, Caret } = this.Editor;
