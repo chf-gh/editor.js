@@ -254,10 +254,17 @@ export default class BlockEvents extends Module {
      * The Toolbox will be opened with immediate focus on the Search input,
      * and '/' will be added in the search input by default — we need to prevent it and add '/' manually
      */
-    event.preventDefault();
-    this.Editor.Caret.insertContentAtCaretPosition('/');
-
-    this.activateToolbox();
+    // 已经使用异步弹出toolbox，无需阻止默认输入
+    // event.preventDefault();
+    // this.Editor.Caret.insertContentAtCaretPosition('/');
+    /**
+     * 中文的 / event.keyCode=229,event.key=Process event.code=Slash
+     * 英文的 / event.keyCode=191,event.key= / event.code=Slash
+     * 中文 /按下时 event.preventDefault() 无法阻止默认键盘输入，导致tool的popover中searchinput中出现 /，使用异步弹出解决问题
+     */
+    setTimeout(() => {
+      this.activateToolbox();
+    },0);
   }
 
   /**
