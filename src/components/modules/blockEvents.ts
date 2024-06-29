@@ -53,13 +53,12 @@ export default class BlockEvents extends Module {
         this.tabPressed(event);
         break;
     }
-
     /**
      * We check for "key" here since on different keyboard layouts "/" can be typed as "Shift + 7" etc
      *
      * @todo probably using "beforeInput" event would be better here
      */
-    if (event.key === '/' && !event.ctrlKey && !event.metaKey) {
+    if (event.code === 'Slash' && !event.ctrlKey && !event.metaKey) {
       this.slashPressed(event);
     }
 
