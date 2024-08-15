@@ -178,6 +178,11 @@ export class PopoverItemDefault extends PopoverItem {
         textContent: params.secondaryLabel,
       }));
     }
+    if (params.searchCode) {
+      el.appendChild(Dom.make('div', css.searchCode, {
+        textContent: (params.searchCode ?  ('/' + params.searchCode.join(' /')) : '' ),
+      }));
+    }
 
     if (this.hasChildren) {
       el.appendChild(Dom.make('div', [css.icon, css.iconChevronRight], {

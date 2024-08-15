@@ -1,4 +1,4 @@
-/** 
+/**
  * Popover styles
  *
  * @todo split into separate files popover styles
@@ -6,7 +6,7 @@
  */
 .ce-popover {
   --border-radius: 6px;
-  --width: 200px;
+  --width: 240px;
   --max-height: 270px;
   --padding: 6px;
   --offset-from-target: 8px;
@@ -48,7 +48,7 @@
     display: flex;
     flex-direction: column;
     z-index: 4;
-  
+
     opacity: 0;
     max-height: 0;
     pointer-events: none;
@@ -64,7 +64,7 @@
       pointer-events: auto;
       animation: panelShowing 100ms ease;
       border: 1px solid var(--color-border);
-  
+
       @media (--mobile) {
         animation: panelShowingMobile 250ms ease;
       }
@@ -113,7 +113,7 @@
 
     .ce-popover__container {
       --offset: 5px;
-  
+
       position: fixed;
       max-width: none;
       min-width: calc(100% - var(--offset) * 2);
@@ -174,7 +174,7 @@
 }
 
 
-/** 
+/**
  * Popover item styles
  */
 .ce-popover-item-separator {
@@ -272,6 +272,17 @@
       display: none;
     }
   }
+  &__search-code {
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    white-space: nowrap;
+    padding-right: 5px;
+    opacity: 0.6;
+
+    @media (--mobile){
+      display: none;
+    }
+  }
 
   &--active {
     background: var(--color-background-icon-active);
@@ -297,7 +308,7 @@
   @media (--can-hover) {
     &:hover {
       cursor: pointer;
-      
+
       &:not(.ce-popover-item--no-hover) {
         background-color: var(--color-background-item-hover);
       }
@@ -331,7 +342,7 @@
 }
 
 
-/** 
+/**
  * Animations
  */
 @keyframes panelShowing {
@@ -415,7 +426,7 @@
   margin-top: 4px;
   display: flex;
   align-items: center;
-  
+
   &__text {
     font-size: 18px;
     font-weight: 600;

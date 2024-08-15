@@ -19,6 +19,7 @@ export const css = {
   noFocus: className(null, 'no-focus'),
   title: className('title'),
   secondaryTitle: className('secondary-title'),
+  searchCode: className('search-code'),
   icon: className('icon'),
   iconTool: className('icon', 'tool'),
   iconChevronRight: className('icon', 'chevron-right'),
