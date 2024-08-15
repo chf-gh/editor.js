@@ -33,6 +33,10 @@ export enum UserSettings {
    */
   Shortcut = 'shortcut',
   /**
+   * search code
+   */
+  SearchCode = 'searchCode',
+  /**
    * Toolbox config for Tool
    */
   Toolbox = 'toolbox',
@@ -235,6 +239,13 @@ export default abstract class BaseTool<Type extends Tool = Tool> {
     const userShortcut = this.config[UserSettings.Shortcut];
 
     return userShortcut || toolShortcut;
+  }
+
+  /**
+   * Return search code
+   */
+  public get searchCode(): string[] | undefined {
+    return this.config[UserSettings.SearchCode];
   }
 
   /**

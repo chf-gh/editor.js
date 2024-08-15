@@ -125,9 +125,25 @@ export class SearchInput extends EventsDispatcher<SearchInputEventMap> {
    * @param item - item to be checked
    */
   private checkItem(item: SearchableItem): boolean {
-    const text = item.title?.toLowerCase() || '';
     const query = this.searchQuery?.toLowerCase();
 
-    return query !== undefined ? text.includes(query) : false;
+    if (query === undefined) {
+      return false;
+    }
+    const searchCodeList = item.searchCode || [];
+    // 优先搜索searchCode
+    if (searchCodeList.length > 0) {
+      const targetItem = searchCodeList.find( code  => {
+        return (code?.toLowerCase() || '').includes(query);
+      });
+
+      return !!targetItem;
+    } else {
+      const text = item.title?.toLowerCase() || '';
+
+      return text.includes(query);
+    }
+    // const text = item.title?.toLowerCase() || '';
+    // return query !== undefined ? text.includes(query) : false;
   }
 }

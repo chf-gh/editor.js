@@ -6,6 +6,10 @@ export interface SearchableItem {
    * Items title
    */
   title?: string;
+  /**
+   * Search code
+   */
+  searchCode?: string[]
 }
 
 

@@ -37,6 +37,12 @@ export class PopoverItemDefault extends PopoverItem {
   public get title(): string | undefined {
     return this.params.title;
   }
+  /**
+   * 搜索代码
+   */
+  public get searchCode(): string[] | undefined {
+    return this.params.searchCode;
+  }
 
   /**
    * True if confirmation state is enabled for popover item

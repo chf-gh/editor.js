@@ -77,6 +77,7 @@ export default class ConvertInlineTool implements InlineTool {
           icon: toolboxItem.icon,
           title: I18nInternal.t(I18nInternalNS.toolNames, toolboxItem.title),
           name: tool.name,
+          searchCode: tool.searchCode,
           closeOnActivate: true,
           onActivate: async () => {
             const newBlock = await this.blocksAPI.convert(currentBlock.id, tool.name, toolboxItem.data);

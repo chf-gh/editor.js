@@ -221,6 +221,8 @@ export default class BlockSettings extends Module<BlockSettingsNodes> {
           icon: toolboxItem.icon,
           title: I18n.t(I18nInternalNS.toolNames, toolboxItem.title),
           name: tool.name,
+          searchCode: tool.config?.searchCode,
+          secondaryLabel: (tool.config?.searchCode ?  ('/' + tool.config?.searchCode.join(' /')) : '' ),
           closeOnActivate: true,
           onActivate: async () => {
             const { BlockManager, Caret, Toolbar } = this.Editor;
