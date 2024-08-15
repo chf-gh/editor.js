@@ -454,7 +454,8 @@ export default class Toolbar extends Module<ToolbarNodes> {
     }));
 
     tooltip.onHover(this.nodes.plusButton, tooltipContent, {
-      hidingDelay: 400,
+      delay: 1000,
+      hidingDelay:200,
     });
 
     /**
@@ -479,7 +480,8 @@ export default class Toolbar extends Module<ToolbarNodes> {
     }));
 
     tooltip.onHover(this.nodes.settingsToggler, blockTunesTooltip, {
-      hidingDelay: 400,
+      delay: 1000,
+      hidingDelay: 200,
     });
 
     /**

@@ -84,7 +84,8 @@ export abstract class PopoverItem {
 
     tooltip.onHover(itemElement, content.getElement(), {
       placement: hintData.position,
-      hidingDelay: 100,
+      delay: 1000,
+      hidingDelay: 200,
     });
   }
 
