@@ -316,7 +316,9 @@ export default class Toolbox extends EventsDispatcher<ToolboxEventMap> {
           this.toolButtonActivated(tool.name, toolboxItem.data);
         },
         searchCode: tool.searchCode,
-        secondaryLabel: tool.shortcut? _.beautifyShortcut(tool.shortcut) : '',
+        searchCodeLabel: (tool.searchCode ?  ('/' + tool.searchCode.join(' /')) : '' ),
+        // tuns列表不显示快捷键
+        // secondaryLabel: tool.shortcut? _.beautifyShortcut(tool.shortcut) : '',
       };
     };
 

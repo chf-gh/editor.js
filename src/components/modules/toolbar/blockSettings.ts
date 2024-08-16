@@ -13,6 +13,7 @@ import { isMobileScreen } from '../../utils';
 import { EditorMobileLayoutToggled } from '../../events';
 import { IconReplace } from '@codexteam/icons';
 import { getConvertibleToolsForBlock } from '../../utils/blocks';
+import * as _ from '../../utils';
 
 /**
  * HTML Elements that used for BlockSettings
@@ -222,6 +223,8 @@ export default class BlockSettings extends Module<BlockSettingsNodes> {
           title: I18n.t(I18nInternalNS.toolNames, toolboxItem.title),
           name: tool.name,
           searchCode: tool.config?.searchCode,
+          // searchCodeLabel: '',
+          secondaryLabel: tool.config.shortcut? _.beautifyShortcut(tool.config.shortcut) : '',
           closeOnActivate: true,
           onActivate: async () => {
             const { BlockManager, Caret, Toolbar } = this.Editor;

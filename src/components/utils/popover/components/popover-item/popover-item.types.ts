@@ -169,7 +169,8 @@ export interface PopoverItemDefaultBaseParams {
    * Used in data attributes needed for shortcuts work and for cypress tests
    */
   name?: string;
-  searchCode?: string[]
+  searchCode?: string[];
+  searchCodeLabel?: string;
   /**
    * Defines whether item should toggle on click.
    * Can be represented as boolean value or a string key.

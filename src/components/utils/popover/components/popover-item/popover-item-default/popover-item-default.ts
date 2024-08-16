@@ -43,6 +43,12 @@ export class PopoverItemDefault extends PopoverItem {
   public get searchCode(): string[] | undefined {
     return this.params.searchCode;
   }
+  /**
+   * 搜索代码label
+   */
+  public get searchCodeLabel(): string | undefined {
+    return this.params.searchCodeLabel;
+  }
 
   /**
    * True if confirmation state is enabled for popover item
@@ -178,9 +184,9 @@ export class PopoverItemDefault extends PopoverItem {
         textContent: params.secondaryLabel,
       }));
     }
-    if (params.searchCode) {
+    if (params.searchCodeLabel) {
       el.appendChild(Dom.make('div', css.searchCode, {
-        textContent: (params.searchCode ?  ('/' + params.searchCode.join(' /')) : '' ),
+        textContent: params.searchCodeLabel,
       }));
     }
 

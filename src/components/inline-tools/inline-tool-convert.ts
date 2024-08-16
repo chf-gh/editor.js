@@ -78,6 +78,8 @@ export default class ConvertInlineTool implements InlineTool {
           title: I18nInternal.t(I18nInternalNS.toolNames, toolboxItem.title),
           name: tool.name,
           searchCode: tool.config?.searchCode,
+          // searchCodeLabel: '',
+          secondaryLabel: tool.config.shortcut? _.beautifyShortcut(tool.config.shortcut) : '',
           closeOnActivate: true,
           onActivate: async () => {
             const newBlock = await this.blocksAPI.convert(currentBlock.id, tool.name, toolboxItem.data);
