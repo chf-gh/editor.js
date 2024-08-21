@@ -455,7 +455,7 @@ export default class Toolbar extends Module<ToolbarNodes> {
 
     tooltip.onHover(this.nodes.plusButton, tooltipContent, {
       delay: 1000,
-      hidingDelay:200,
+      hidingDelay:0,
     });
 
     /**
@@ -481,7 +481,7 @@ export default class Toolbar extends Module<ToolbarNodes> {
 
     tooltip.onHover(this.nodes.settingsToggler, blockTunesTooltip, {
       delay: 1000,
-      hidingDelay: 200,
+      hidingDelay: 0,
     });
 
     /**
