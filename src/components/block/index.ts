@@ -953,7 +953,6 @@ export default class Block extends EventsDispatcher<BlockEvents> {
           }
           return false;
         });
-        // console.log('hasMutatihasToolbar============', hasToolbar);
         if (hasToolbar) {
           return true;
         }
@@ -968,7 +967,10 @@ export default class Block extends EventsDispatcher<BlockEvents> {
 
           return node && (node as HTMLElement).closest('[data-mutation-free="true"]') !== null;
         });
-        // console.log('hasMutationFree=====================', hasMutationFree,record);
+        // 打印触发改版的record
+        // if (!hasMutationFree) {
+        //   console.log('record========!hasMutationFree=============', record);
+        // }
         return hasMutationFree;
       });
 
