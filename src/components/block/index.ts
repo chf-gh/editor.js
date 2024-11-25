@@ -905,16 +905,21 @@ export default class Block extends EventsDispatcher<BlockEvents> {
         // console.log('record=====================', record);
         const classList = (target as HTMLElement)?.classList;
         // 忽略指定的类
-        if (classList && classList.contains('ignore-class-mutation')){
+        if (classList && classList.contains('ignore-mutation-class')){
           return true;
         }
-        if (type == 'attributes') {
+        // 如果上层元素忽略修改则直接忽略
+        const ignoreMutation = (target as HTMLElement).closest('ignore-mutation-class');
+        if (ignoreMutation) {
+          return true;
+        }
+        if (type === 'attributes') {
           // if (attributeName == "class") {
             if (classList){
               // 过滤column中editor的class变化
               if (
                 // 过滤手动忽略的class变化
-                classList.contains("ignore-class-mutation")
+                classList.contains("ignore-mutation-class")
                 // 过滤column中的块聚焦的改变的class变化
                 ||classList.contains("ce-block")
                 ||classList.contains("codex-editor")
