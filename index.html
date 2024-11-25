@@ -97,6 +97,7 @@
   <!-- Initialization -->
   <script type="module">
     import EditorJS from './src/codex.ts';
+    import EditorJsColumns from './src/Columns/editorjs-columns';
 
     window.EditorJS = EditorJS;
 
@@ -127,6 +128,32 @@
        * Tools list
        */
       tools: {
+        columns : {
+          class : EditorJsColumns,
+          config : {
+            EditorJsLibrary : EditorJS, // Pass the library instance to the columns instance.
+            tools : {
+              header: {
+                class: Header,
+                inlineToolbar: ['link', 'marker'],
+                config: {
+                  placeholder: 'Header'
+                },
+                shortcut: 'CMD+SHIFT+H'
+              },
+              list: {
+                class: NestedList,
+                inlineToolbar: true,
+                shortcut: 'CMD+SHIFT+L'
+              },
+
+            }
+          },
+          searchCode: [
+            'columns',
+            'fl'
+          ]
+        },
         /**
          * Each Tool is a Plugin. Pass them via 'class' option with necessary settings {@link docs/tools.md}
          */
@@ -211,6 +238,121 @@
        */
       data: {
         blocks: [
+
+          {
+            "id": "hE_Lbag274",
+            "type": "columns",
+            "data": {
+              "cols": [
+                {
+                  "blocks": [
+                    {
+                      "id": "OxbeiGJXtR",
+                      "type": "paragraph",
+                      "data": {
+                        "text": "teatt&nbsp;",
+                        "align": "left"
+                      }
+                    },
+                    {
+                      "id": "nurYTpRF3a",
+                      "type": "paragraph",
+                      "data": {
+                        "text": "",
+                        "align": "left"
+                      }
+                    },
+                    {
+                      "id": "j8HwMEIcpb",
+                      "type": "paragraph",
+                      "data": {
+                        "text": "",
+                        "align": "left"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "blocks": [
+                    {
+                      "id": "S2fMxYTnMM",
+                      "type": "paragraph",
+                      "data": {
+                        "text": "tesat",
+                        "align": "left"
+                      }
+                    },
+                    {
+                      "id": "oEjlVy3cSz",
+                      "type": "paragraph",
+                      "data": {
+                        "text": "tesa&nbsp;",
+                        "align": "left"
+                      }
+                    },
+                    {
+                      "id": "a90mWW4eR6",
+                      "type": "paragraph",
+                      "data": {
+                        "text": "1111",
+                        "align": "left"
+                      }
+                    },
+                    {
+                      "id": "FLF3A4bGak",
+                      "type": "paragraph",
+                      "data": {
+                        "text": "特撒",
+                        "align": "left"
+                      }
+                    },
+                    {
+                      "id": "GLudQpDuu4",
+                      "type": "paragraph",
+                      "data": {
+                        "text": "",
+                        "align": "left"
+                      }
+                    },
+                    {
+                      "id": "7G-o1ua7Mk",
+                      "type": "paragraph",
+                      "data": {
+                        "text": "",
+                        "align": "left"
+                      }
+                    },
+                    {
+                      "id": "dePILdF8kb",
+                      "type": "paragraph",
+                      "data": {
+                        "text": "",
+                        "align": "left"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "blocks": [
+                    {
+                      "id": "YDdyw-8NOD",
+                      "type": "paragraph",
+                      "data": {
+                        "text": "",
+                        "align": "left"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "scales": [
+                0.31496062992125984,
+                0.32381889763779526,
+                0.26884920634920634
+              ]
+            },
+            "tunes": {}
+          },
           {
             id: "zcKCF1S7X8",
             type: "header",

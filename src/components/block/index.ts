@@ -902,17 +902,48 @@ export default class Block extends EventsDispatcher<BlockEvents> {
        */
       const everyRecordIsMutationFree = mutationsOrInputEvent.length > 0 && mutationsOrInputEvent.every((record) => {
         const { addedNodes, removedNodes, target, type, attributeName} = record;
-        // console.log('record=====================', record);
-        const classList = (target as HTMLElement)?.classList;
+
+        let judgeNode = target;
+        // 判断是否是文本节点， .closest 方法文本节点不能使用
+        if (target.nodeType === Node.TEXT_NODE) {
+          judgeNode = null;
+          while(target.parentNode) {
+            if (target.parentNode.nodeType !== Node.TEXT_NODE) {
+              judgeNode = target.parentNode;
+              break;
+            }
+          }
+        }
+        if (!judgeNode) {
+          return true;
+        }
+        // 是否在columns组件中
+        const columnsContainer = (judgeNode as HTMLElement).closest('.cdx-columns_col');
+        if (columnsContainer) {
+          // 只接受来自columns 中block的修改
+          const editorRedactorInColumns = (judgeNode as HTMLElement).closest('.cdx-columns_col .codex-editor__redactor');
+          if (!editorRedactorInColumns) {
+            return true;
+          }
+        } else {
+          // 只接受来自block的修改
+          const editorRedactor = (judgeNode as HTMLElement).closest('.codex-editor__redactor');
+          if (!editorRedactor) {
+            return true;
+          }
+        }
+        const classList = (judgeNode as HTMLElement)?.classList;
         // 忽略指定的类
         if (classList && classList.contains('ignore-mutation-class')){
           return true;
         }
         // 如果上层元素忽略修改则直接忽略
-        const ignoreMutation = (target as HTMLElement).closest('ignore-mutation-class');
+        const ignoreMutation = (judgeNode as HTMLElement).closest('.ignore-mutation-class')
         if (ignoreMutation) {
           return true;
         }
+        console.log('record===',record)
+        // codex-editor__redactor
         if (type === 'attributes') {
           // if (attributeName == "class") {
             if (classList){
