@@ -32,8 +32,6 @@ export default class InlineToolbar extends Module<InlineToolbarNodes> {
    */
   public CSS = {
     inlineToolbar: 'ce-inline-toolbar',
-    // 忽略mutaion，inlinepopover在分栏组件中会触发mutation
-    ignoreMutationClass: 'ignore-mutation-class',
   };
 
   /**
@@ -174,7 +172,6 @@ export default class InlineToolbar extends Module<InlineToolbarNodes> {
   private make(): void {
     this.nodes.wrapper = $.make('div', [
       this.CSS.inlineToolbar,
-      this.CSS.ignoreMutationClass,
       ...(this.isRtl ? [ this.Editor.UI.CSS.editorRtlFix ] : []),
     ]);
 
