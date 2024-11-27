@@ -908,7 +908,8 @@ export default class Block extends EventsDispatcher<BlockEvents> {
         if (target.nodeType === Node.TEXT_NODE) {
           judgeNode = null;
           while(target.parentNode) {
-            if (target.parentNode.nodeType !== Node.TEXT_NODE) {
+            // 只要元素节点
+            if (target.parentNode.nodeType === Node.ELEMENT_NODE) {
               judgeNode = target.parentNode;
               break;
             }
@@ -942,7 +943,7 @@ export default class Block extends EventsDispatcher<BlockEvents> {
         if (ignoreMutation) {
           return true;
         }
-        console.log('record===',record)
+        // console.log('record===',record)
         // codex-editor__redactor
         if (type === 'attributes') {
           // if (attributeName == "class") {
