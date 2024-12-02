@@ -400,15 +400,16 @@ export default class BlockEvents extends Module {
     /**
      * If current Block is empty, just remove it and set cursor to the previous Block (like we're removing line break char)
      */
-    if (currentBlock.isEmpty) {
-      BlockManager.removeBlock(currentBlock);
-
-      const newCurrentBlock = BlockManager.currentBlock;
-
-      Caret.setToBlock(newCurrentBlock, Caret.positions.END);
-
-      return;
-    }
+    // 不管是不是空的都需要merge，numberList需要依赖merge对下面的block重新排序
+    // if (currentBlock.isEmpty) {
+    //   BlockManager.removeBlock(currentBlock);
+    //
+    //   const newCurrentBlock = BlockManager.currentBlock;
+    //
+    //   Caret.setToBlock(newCurrentBlock, Caret.positions.END);
+    //
+    //   return;
+    // }
 
     const bothBlocksMergeable = areBlocksMergeable(previousBlock, currentBlock);
 
