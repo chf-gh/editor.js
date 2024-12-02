@@ -43,8 +43,9 @@ export default class BlockTool extends BaseTool<IBlockTool> {
    * @param data - Tool data
    * @param block - BlockAPI for current Block
    * @param readOnly - True if Editor is in read-only mode
+   * @param source
    */
-  public create(data: BlockToolData, block: BlockAPI, readOnly: boolean): IBlockTool {
+  public create(data: BlockToolData, block: BlockAPI, readOnly: boolean, source?: string): IBlockTool {
     // eslint-disable-next-line new-cap
     return new this.constructable({
       data,
@@ -52,6 +53,7 @@ export default class BlockTool extends BaseTool<IBlockTool> {
       readOnly,
       api: this.api,
       config: this.settings,
+      source,
     }) as IBlockTool;
   }
 

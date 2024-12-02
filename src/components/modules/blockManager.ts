@@ -22,6 +22,7 @@ import { clean, sanitizeBlocks } from '../utils/sanitizer';
 import { convertStringToBlockData, isBlockConvertable } from '../utils/blocks';
 import PromiseQueue from '../utils/promise-queue';
 import {emitter} from '../emitter';
+import {SavedData} from "../../../types/data-formats";
 
 /**
  * @typedef {BlockManager} BlockManager
@@ -233,7 +234,8 @@ export default class BlockManager extends Module {
     data = {},
     id = undefined,
     tunes: tunesData = {},
-  }: {tool: string; id?: string; data?: BlockToolData; tunes?: {[name: string]: BlockTuneData}}): Block {
+    source = undefined
+  }: {tool: string; id?: string; data?: BlockToolData; tunes?: {[name: string]: BlockTuneData}, source?: string}): Block {
     const readOnly = this.Editor.ReadOnly.isEnabled;
     const tool = this.Editor.Tools.blockTools.get(name);
     const block = new Block({
@@ -243,6 +245,7 @@ export default class BlockManager extends Module {
       api: this.Editor.API,
       readOnly,
       tunesData,
+      source
     }, this.eventsDispatcher);
 
     if (!readOnly) {
@@ -274,6 +277,7 @@ export default class BlockManager extends Module {
     needToFocus = true,
     replace = false,
     tunes = {},
+    source = 'new'
   }: {
     id?: string;
     tool?: string;
@@ -282,18 +286,21 @@ export default class BlockManager extends Module {
     needToFocus?: boolean;
     replace?: boolean;
     tunes?: {[name: string]: BlockTuneData};
+    source?: string
   } = {}): Block {
     let newIndex = index;
 
     if (newIndex === undefined) {
       newIndex = this.currentBlockIndex + (replace ? 0 : 1);
     }
+    console.log('insert block ',source)
 
     const block = this.composeBlock({
       id,
       tool,
       data,
       tunes,
+      source
     });
 
     /**
@@ -378,15 +385,20 @@ export default class BlockManager extends Module {
    * @param newTool - new Tool name
    * @param data - new Tool data
    */
-  public replace(block: Block, newTool: string, data: BlockToolData): Block {
+  public replace(block: Block, newTool: string, data: BlockToolData,savedBlock: SavedData): Block {
     const blockIndex = this.getBlockIndex(block);
-
-    return this.insert({
+    const newBlock = this.insert({
       tool: newTool,
       data,
       index: blockIndex,
       replace: true,
+      source: 'convert', // 来源convert
     });
+
+    // 调用block的convert方法告诉block被转换了
+    newBlock.call('convertFrom', savedBlock);
+    block.call('convertTo', data);
+    return newBlock;
   }
 
   /**
@@ -404,6 +416,7 @@ export default class BlockManager extends Module {
     const block = this.insert({
       tool: toolName,
       replace,
+      source: 'paste'
     });
 
     try {
@@ -874,7 +887,7 @@ export default class BlockManager extends Module {
       newBlockData = Object.assign(newBlockData, blockDataOverrides);
     }
 
-    return this.replace(blockToConvert, replacingTool.name, newBlockData);
+    return this.replace(blockToConvert, replacingTool.name, newBlockData, savedBlock);
   }
 
   /**

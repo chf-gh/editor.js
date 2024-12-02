@@ -61,6 +61,10 @@ interface BlockConstructorOptions {
    * Tunes data for current Block
    */
   tunesData: { [name: string]: BlockTuneData };
+  /**
+   * block来源
+   */
+  source: string
 }
 
 /**
@@ -206,6 +210,11 @@ export default class Block extends EventsDispatcher<BlockEvents> {
   private readonly blockAPI: BlockAPIInterface;
 
   /**
+   * 创建block的来源
+   * @private
+   */
+  private readonly source: string;
+  /**
    * @param options - block constructor options
    * @param [options.id] - block's id. Will be generated if omitted.
    * @param options.data - Tool's initial data
@@ -220,8 +229,10 @@ export default class Block extends EventsDispatcher<BlockEvents> {
     tool,
     readOnly,
     tunesData,
+    source
   }: BlockConstructorOptions, eventBus?: EventsDispatcher<EditorEventMap>) {
     super();
+    this.source = source;
     this.name = tool.name;
     this.id = id;
     this.settings = tool.settings;
@@ -230,7 +241,7 @@ export default class Block extends EventsDispatcher<BlockEvents> {
     this.blockAPI = new BlockAPI(this);
 
     this.tool = tool;
-    this.toolInstance = tool.create(data, this.blockAPI, readOnly);
+    this.toolInstance = tool.create(data, this.blockAPI, readOnly, source);
 
     /**
      * @type {BlockTune[]}

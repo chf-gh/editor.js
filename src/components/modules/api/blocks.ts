@@ -272,7 +272,8 @@ export default class BlocksAPI extends Module {
     index?: number,
     needToFocus?: boolean,
     replace?: boolean,
-    id?: string
+    id?: string,
+    source?: string
   ): BlockAPIInterface => {
     const insertedBlock = this.Editor.BlockManager.insert({
       id,
@@ -281,6 +282,7 @@ export default class BlocksAPI extends Module {
       index,
       needToFocus,
       replace,
+      source
     });
 
     return new BlockAPI(insertedBlock);
@@ -299,6 +301,7 @@ export default class BlocksAPI extends Module {
       readOnly: true,
       data: {},
       tunesData: {},
+      source: undefined
     });
 
     return block.data;

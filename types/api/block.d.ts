@@ -6,6 +6,10 @@ import {SavedData} from '../data-formats';
  */
 export interface BlockAPI {
   /**
+   * 来源
+   */
+  readonly source: string;
+  /**
    * Block unique identifier
    */
   readonly id: string;
