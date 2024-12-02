@@ -396,6 +396,13 @@ export default class LinkInlineTool implements InlineTool {
     }
 
     document.execCommand(this.commandLink, false, link);
+
+    // add target
+    const targetLink = this.selection.findParentTag('A');
+    if (targetLink && targetLink.tagName.toLowerCase() === 'a') {
+      // 设置 _target 属性为 "_blank"
+      targetLink.setAttribute('target', '_blank');
+    }
   }
 
   /**
