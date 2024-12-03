@@ -466,6 +466,7 @@ export default class Toolbar extends Module<ToolbarNodes> {
      */
     this.nodes.settingsToggler = $.make('span', this.CSS.settingsToggler, {
       innerHTML: IconMenu,
+      draggable: true,
     });
 
     $.append(this.nodes.actions, this.nodes.settingsToggler);
