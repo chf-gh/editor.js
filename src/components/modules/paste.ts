@@ -114,6 +114,7 @@ export default class Paste extends Module {
 
   /** Custom EditorJS mime-type to handle in-editor copy/paste actions */
   public readonly MIME_TYPE = 'application/x-editor-js';
+  public readonly MIME_TYPE_PAST_TYPE = 'text/x-editor-paste-type';
 
   /**
    * Tags` substitutions parameters
@@ -165,6 +166,12 @@ export default class Paste extends Module {
    * @param {boolean} isDragNDrop - true if data transfer comes from drag'n'drop events
    */
   public async processDataTransfer(dataTransfer: DataTransfer, isDragNDrop = false): Promise<void> {
+    // 如果是需要忽略的黏贴行为则忽略
+    const pasteType = dataTransfer.getData(this.MIME_TYPE_PAST_TYPE);
+    if (pasteType && pasteType === 'ignore') {
+      return;
+    }
+
     const { Tools } = this.Editor;
     const types = dataTransfer.types;
 
