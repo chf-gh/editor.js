@@ -353,6 +353,8 @@ export default class Toolbar extends Module<ToolbarNodes> {
      */
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.nodes.wrapper!.style.top = `${Math.floor(toolbarY)}px`;
+    // 计算x轴位移
+    this.nodes.wrapper!.style.left = `${targetBlockHolder.offsetLeft || 0}px`;
 
     /**
      * Do not show Block Tunes Toggler near single and empty block
