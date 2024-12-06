@@ -13,6 +13,9 @@ import * as caretUtils from '../utils/caret';
  *
  */
 export default class BlockEvents extends Module {
+  // 拖动的目标类型，columu的block时type=columns
+  public readonly MIME_TYPE_DRAG_TYPE = 'text/x-editor-drag-type';
+
   /**
    * All keydowns on Block
    *
@@ -134,8 +137,21 @@ export default class BlockEvents extends Module {
    * @param {DragEvent} event - drag over event
    */
   public dragOver(event: DragEvent): void {
+    event.preventDefault();
+    // dragover无法获取datatransfer中的数据
+    console.log('dragType==',event.dataTransfer.types);
     const block = this.Editor.BlockManager.getBlockByChildNode(event.target as Node);
 
+    console.log('event.dataTransfer.types==',event.dataTransfer.types);
+    const hasType = event.dataTransfer.types?.includes(this.MIME_TYPE_DRAG_TYPE);
+    if (hasType) {
+      // 拖动的是columns组件，禁止套娃
+      const col = block.holder.closest('.cdx-columns_col');
+      if (col) {
+        console.log('禁止套娃');
+        return;
+      }
+    }
     block.dropTarget = true;
   }
 

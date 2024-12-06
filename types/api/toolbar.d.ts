@@ -23,4 +23,9 @@ export interface Toolbar {
    * @param {boolean} openingState —  opening state of the toolbox
    */
   toggleToolbox(openingState?: boolean): void;
+
+  /**
+   * 隐藏 blockAction
+   */
+  hideBlockActions(forceClose?:boolean): void;
 }

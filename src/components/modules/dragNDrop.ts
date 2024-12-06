@@ -92,6 +92,18 @@ export default class DragNDrop extends Module {
     const targetBlock = BlockManager.setCurrentBlockByChildNode(dropEvent.target as Node);
 
     if (targetBlock) {
+
+      console.log('dragType==',dropEvent.dataTransfer.types);
+      console.log('event.dataTransfer.types==',dropEvent.dataTransfer.types);
+      const isColumns = dropEvent.dataTransfer.types?.includes('text/x-editor-drag-type');
+      if (isColumns) {
+        // 拖动的是columns组件，禁止套娃
+        const col = targetBlock.holder.closest('.cdx-columns_col');
+        if (col) {
+          console.log('禁止套娃 drappppp');
+          return;
+        }
+      }
       this.Editor.Caret.setToBlock(targetBlock, Caret.positions.END);
     } else {
       const lastBlock = BlockManager.setCurrentBlockByChildNode(BlockManager.lastBlock.holder);

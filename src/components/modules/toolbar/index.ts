@@ -273,6 +273,7 @@ export default class Toolbar extends Module<ToolbarNodes> {
     }
 
     this.hoveredBlock = block;
+    console.log('更换hoverblock',this.Editor.BlockManager.getBlockIndex(this.hoveredBlock));
 
     const targetBlockHolder = block.holder;
     const { isMobile } = this.Editor.UI;
@@ -479,7 +480,6 @@ export default class Toolbar extends Module<ToolbarNodes> {
       innerHTML: IconMenu,
       draggable: true,
     });
-
     $.append(this.nodes.actions, this.nodes.settingsToggler);
 
     const blockTunesTooltip = $.make('div');

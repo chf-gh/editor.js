@@ -114,6 +114,7 @@ export default class Paste extends Module {
 
   /** Custom EditorJS mime-type to handle in-editor copy/paste actions */
   public readonly MIME_TYPE = 'application/x-editor-js';
+  // 黏贴类型 当type=ignorePaste 时会忽略黏贴
   public readonly MIME_TYPE_PAST_TYPE = 'text/x-editor-paste-type';
 
   /**
@@ -168,7 +169,7 @@ export default class Paste extends Module {
   public async processDataTransfer(dataTransfer: DataTransfer, isDragNDrop = false): Promise<void> {
     // 如果是需要忽略的黏贴行为则忽略
     const pasteType = dataTransfer.getData(this.MIME_TYPE_PAST_TYPE);
-    if (pasteType && pasteType === 'ignore') {
+    if (pasteType && pasteType === 'ignorePaste') {
       return;
     }
 

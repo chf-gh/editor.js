@@ -17,6 +17,7 @@ export default class ToolbarAPI extends Module {
       open: (): void => this.open(),
       toggleBlockSettings: (openingState?: boolean): void => this.toggleBlockSettings(openingState),
       toggleToolbox: (openingState?: boolean): void => this.toggleToolbox(openingState),
+      hideBlockActions: (forceClose?:boolean): void => this.hideBlockActions(forceClose),
     };
   }
 
@@ -78,5 +79,14 @@ export default class ToolbarAPI extends Module {
     } else {
       this.Editor.Toolbar.toolbox.close();
     }
+  }
+  /**
+   * 隐藏控制拖动按钮
+   */
+  public hideBlockActions(forceClose?:boolean): void {
+    if ((!forceClose) && (this.Editor.BlockSettings.opened || this.Editor.Toolbar.toolbox.opened)) {
+      return;
+    }
+    this.Editor.Toolbar.close();
   }
 }
