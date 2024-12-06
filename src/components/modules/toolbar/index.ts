@@ -293,6 +293,9 @@ export default class Toolbar extends Module<ToolbarNodes> {
     let toolbarY;
     const MAX_OFFSET = 20;
 
+    // 优先查找自定义拖动把手
+    const dragHandle = targetBlockHolder.querySelector('.drag-handle');
+
     /**
      * Compute first input position
      */
@@ -300,6 +303,7 @@ export default class Toolbar extends Module<ToolbarNodes> {
     const targetBlockHolderRect = targetBlockHolder.getBoundingClientRect();
     const firstInputRect = firstInput !== undefined ? firstInput.getBoundingClientRect() : null;
 
+    const dragHandleOffset = dragHandle ? (dragHandle.getBoundingClientRect().top - targetBlockHolderRect.top) : null;
     /**
      * Compute the offset of the first input from the top of the block
      */
@@ -322,7 +326,7 @@ export default class Toolbar extends Module<ToolbarNodes> {
      * On Desktop — without inputs or with the first input far from the top of the block
      *            Toolbar should be moved to the top of the block
      */
-    } else if (firstInput === undefined || isFirstInputFarFromTop) {
+    } else if ((!dragHandle) && (firstInput === undefined || isFirstInputFarFromTop)) {
       const pluginContentOffset = parseInt(window.getComputedStyle(block.pluginsContent).paddingTop);
 
       const paddingTopBasedY = targetBlockHolder.offsetTop + pluginContentOffset;
@@ -334,7 +338,7 @@ export default class Toolbar extends Module<ToolbarNodes> {
      * On Desktop — Toolbar should be moved to the baseline of the first input
      */
     } else {
-      const baseline = calculateBaseline(firstInput);
+      const baseline = calculateBaseline(dragHandle || firstInput);
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const toolbarActionsHeight =  parseInt(window.getComputedStyle(this.nodes.plusButton!).height, 10);
       /**
@@ -342,8 +346,13 @@ export default class Toolbar extends Module<ToolbarNodes> {
        */
       const toolbarActionsPaddingBottom = 8;
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const baselineBasedY = targetBlockHolder.offsetTop + baseline - toolbarActionsHeight + toolbarActionsPaddingBottom + firstInputOffset!;
+      let baselineBasedY = 0;
+      if (dragHandle) {
+        baselineBasedY = targetBlockHolder.offsetTop + baseline - toolbarActionsHeight + toolbarActionsPaddingBottom + dragHandleOffset;
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        baselineBasedY = targetBlockHolder.offsetTop + baseline - toolbarActionsHeight + toolbarActionsPaddingBottom + firstInputOffset!;
+      }
 
       toolbarY = baselineBasedY;
     }
