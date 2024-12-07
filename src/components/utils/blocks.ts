@@ -1,7 +1,7 @@
 import { BlockAPI } from '../../../types';
 import type { ConversionConfig } from '../../../types/configs/conversion-config';
 import { SavedData } from '../../../types/data-formats';
-import type { BlockToolData } from '../../../types/tools/block-tool-data';
+import {BlockToolData, BlockToolMergeData} from '../../../types/tools/block-tool-data';
 import type Block from '../block';
 import BlockTool from '../tools/block';
 import { isFunction, isString, log, equals, isEmpty } from '../utils';
@@ -128,12 +128,12 @@ export function areBlocksMergeable(targetBlock: Block, blockToMerge: Block): boo
 }
 
 /**
- * Using conversionConfig, convert block data to string.
+ * Using conversionConfig, convert block data to obj.
  *
  * @param blockData - block data to convert
  * @param conversionConfig - tool's conversion config
  */
-export function convertBlockDataToString(blockData: BlockToolData, conversionConfig?: ConversionConfig ): string {
+export function convertBlockDataToMergeData(blockData: BlockToolData, conversionConfig?: ConversionConfig ): BlockToolMergeData {
   const exportProp = conversionConfig?.export;
 
   if (isFunction(exportProp)) {
@@ -156,18 +156,14 @@ export function convertBlockDataToString(blockData: BlockToolData, conversionCon
 /**
  * Using conversionConfig, convert string to block data.
  *
- * @param stringToImport - string to convert
+ * @param stringToImport - BlockToolMergeData to convert
  * @param conversionConfig - tool's conversion config
  */
-export function convertStringToBlockData(stringToImport: string, conversionConfig?: ConversionConfig): BlockToolData {
+export function convertStringToBlockData(mergeDataToImport: BlockToolMergeData, conversionConfig?: ConversionConfig): BlockToolData {
   const importProp = conversionConfig?.import;
 
   if (isFunction(importProp)) {
-    return importProp(stringToImport);
-  } else if (isString(importProp)) {
-    return {
-      [importProp]: stringToImport,
-    };
+    return importProp(mergeDataToImport);
   } else {
     /**
      * Tool developer provides 'import' property, but it is not correct. Warn him.

@@ -21,11 +21,11 @@ import BlockTune from '../tools/tune';
 import { BlockTuneData } from '../../../types/block-tunes/block-tune-data';
 import ToolsCollection from '../tools/collection';
 import EventsDispatcher from '../utils/events';
-import { TunesMenuConfigItem } from '../../../types/tools';
+import {BlockToolMergeData, TunesMenuConfigItem} from '../../../types/tools';
 import { isMutationBelongsToElement } from '../utils/mutations';
 import { EditorEventMap, FakeCursorAboutToBeToggled, FakeCursorHaveBeenSet, RedactorDomChanged } from '../events';
 import { RedactorDomChangedPayload } from '../events/RedactorDomChanged';
-import { convertBlockDataToString, isSameBlockData } from '../utils/blocks';
+import { convertBlockDataToMergeData, isSameBlockData } from '../utils/blocks';
 import { PopoverItemType } from '../utils/popover';
 
 /**
@@ -741,10 +741,10 @@ export default class Block extends EventsDispatcher<BlockEvents> {
   /**
    * Exports Block data as string using conversion config
    */
-  public async exportDataAsString(): Promise<string> {
+  public async exportDataAsMergeData(): Promise<BlockToolMergeData> {
     const blockData = await this.data;
 
-    return convertBlockDataToString(blockData, this.tool.conversionConfig);
+    return convertBlockDataToMergeData(blockData, this.tool.conversionConfig);
   }
 
   /**

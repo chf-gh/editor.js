@@ -515,10 +515,11 @@ export default class BlockManager extends Module {
      * 2) Blocks with different Tools if they provides conversionConfig
      */
     } else if (targetBlock.mergeable && isBlockConvertable(blockToMerge, 'export') && isBlockConvertable(targetBlock, 'import')) {
-      const blockToMergeDataStringified = await blockToMerge.exportDataAsString();
-      const cleanData = clean(blockToMergeDataStringified, targetBlock.tool.sanitizeConfig);
-
-      blockToMergeData = convertStringToBlockData(cleanData, targetBlock.tool.conversionConfig);
+      const mergeData = await blockToMerge.exportDataAsMergeData();
+      const cleanTextData = clean(mergeData.text, targetBlock.tool.sanitizeConfig);
+      // 覆盖text数据
+      mergeData.text = cleanTextData;
+      blockToMergeData = convertStringToBlockData(mergeData, targetBlock.tool.conversionConfig);
     }
 
     if (blockToMergeData === undefined) {
@@ -864,20 +865,22 @@ export default class BlockManager extends Module {
     /**
      * Using Conversion Config "export" we get a stringified version of the Block data
      */
-    const exportedData = await blockToConvert.exportDataAsString();
+    const exportedData = await blockToConvert.exportDataAsMergeData();
 
     /**
      * Clean exported data with replacing sanitizer config
      */
-    const cleanData: string = clean(
-      exportedData,
+    const cleanTextData: string = clean(
+      exportedData.text,
       replacingTool.sanitizeConfig
     );
+    // 覆盖text数据
+    exportedData.text = cleanTextData;
 
     /**
      * Now using Conversion Config "import" we compose a new Block data
      */
-    let newBlockData = convertStringToBlockData(cleanData, replacingTool.conversionConfig);
+    let newBlockData = convertStringToBlockData(exportedData, replacingTool.conversionConfig);
 
     /**
      * Optional data overrides.
