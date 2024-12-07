@@ -303,7 +303,7 @@ export default class BlockSelection extends Module {
     });
 
     const textPlain = Array.from(fakeClipboard.childNodes).map((node) => node.textContent)
-      .join('\n\n');
+      .join('\n');
     const textHTML = fakeClipboard.innerHTML;
 
     e.clipboardData.setData('text/plain', textPlain);
