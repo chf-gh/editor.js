@@ -273,8 +273,6 @@ export default class Toolbar extends Module<ToolbarNodes> {
     }
 
     this.hoveredBlock = block;
-    console.log('更换hoverblock',this.Editor.BlockManager.getBlockIndex(this.hoveredBlock));
-
     const targetBlockHolder = block.holder;
     const { isMobile } = this.Editor.UI;
 

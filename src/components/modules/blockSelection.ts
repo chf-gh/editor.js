@@ -302,6 +302,7 @@ export default class BlockSelection extends Module {
       fakeClipboard.appendChild(fragment);
     });
 
+    // todo-chf 如何解析为md语法的文本
     const textPlain = Array.from(fakeClipboard.childNodes).map((node) => node.textContent)
       .join('\n');
     const textHTML = fakeClipboard.innerHTML;
