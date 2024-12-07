@@ -575,7 +575,7 @@ export default class Toolbar extends Module<ToolbarNodes> {
      *
      * mousedown is used because on click selection is lost in Safari and FF
      */
-    this.readOnlyMutableListeners.on(this.nodes.settingsToggler, 'mouseup', (e) => {
+    this.readOnlyMutableListeners.on(this.nodes.settingsToggler, 'mousedown', (e) => {
       /**
        * Stop propagation to prevent block selection clearance
        *
