@@ -9,6 +9,7 @@
  */
  :root {
   --placeholder {
+    position: absolute;
     pointer-events: none;
     color: var(--grayText);
     cursor: text;
