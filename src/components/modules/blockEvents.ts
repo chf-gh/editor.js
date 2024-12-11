@@ -5,7 +5,7 @@ import Module from '../__module';
 import * as _ from '../utils';
 import SelectionUtils from '../selection';
 import Flipper from '../flipper';
-import type Block from '../block';
+import Block, {BlockToolAPI} from '../block';
 import { areBlocksMergeable } from '../utils/blocks';
 import * as caretUtils from '../utils/caret';
 
@@ -139,10 +139,8 @@ export default class BlockEvents extends Module {
   public dragOver(event: DragEvent): void {
     event.preventDefault();
     // dragover无法获取datatransfer中的数据
-    console.log('dragType==',event.dataTransfer.types);
     const block = this.Editor.BlockManager.getBlockByChildNode(event.target as Node);
 
-    console.log('event.dataTransfer.types==',event.dataTransfer.types);
     const hasType = event.dataTransfer.types?.includes(this.MIME_TYPE_DRAG_TYPE);
     if (hasType) {
       // 拖动的是columns组件，禁止套娃
@@ -538,7 +536,7 @@ export default class BlockEvents extends Module {
       .mergeBlocks(targetBlock, blockToMerge)
       .then(() => {
         // 回调targetBlock的afterMerge
-        targetBlock.call('afterMerge',{blockToMerge});
+        targetBlock.call(BlockToolAPI.AFTER_MERGE,{blockToMerge});
         /** Restore caret position after merge */
         Caret.restoreCaret(targetBlock.pluginsContent as HTMLElement);
         Toolbar.close();

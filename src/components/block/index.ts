@@ -90,6 +90,8 @@ export enum BlockToolAPI {
   REMOVED = 'removed',
   // eslint-disable-next-line @typescript-eslint/naming-convention
   ON_PASTE = 'onPaste',
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  AFTER_MERGE = 'afterMerge',
 }
 
 /**

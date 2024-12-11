@@ -92,9 +92,6 @@ export default class DragNDrop extends Module {
     const targetBlock = BlockManager.setCurrentBlockByChildNode(dropEvent.target as Node);
 
     if (targetBlock) {
-
-      console.log('dragType==',dropEvent.dataTransfer.types);
-      console.log('event.dataTransfer.types==',dropEvent.dataTransfer.types);
       const isColumns = dropEvent.dataTransfer.types?.includes('text/x-editor-drag-type');
       if (isColumns) {
         // 拖动的是columns组件，禁止套娃
