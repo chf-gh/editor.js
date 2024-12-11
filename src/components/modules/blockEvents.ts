@@ -537,6 +537,8 @@ export default class BlockEvents extends Module {
     BlockManager
       .mergeBlocks(targetBlock, blockToMerge)
       .then(() => {
+        // 回调targetBlock的afterMerge
+        targetBlock.call('afterMerge',{blockToMerge});
         /** Restore caret position after merge */
         Caret.restoreCaret(targetBlock.pluginsContent as HTMLElement);
         Toolbar.close();
