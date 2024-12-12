@@ -65,6 +65,13 @@ function BlockAPI(
     get selected(): boolean {
       return block.selected;
     },
+    /**
+     * 设置是否选中 block
+     * @param state
+     */
+    set selected(state: boolean) {
+      block.selected = state;
+    },
 
     /**
      * Set Block's stretch state

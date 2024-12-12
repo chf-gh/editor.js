@@ -37,7 +37,7 @@ export interface BlockAPI {
   /**
    * True if Block is selected with Cross-Block selection
    */
-  readonly selected: boolean;
+  selected: boolean;
 
   /**
    * True if Block has inputs to be focused

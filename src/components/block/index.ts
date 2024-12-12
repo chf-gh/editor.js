@@ -92,6 +92,8 @@ export enum BlockToolAPI {
   ON_PASTE = 'onPaste',
   // eslint-disable-next-line @typescript-eslint/naming-convention
   AFTER_MERGE = 'afterMerge',
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  TOGGLE_SELECTED = 'toggleSelected',
 }
 
 /**
@@ -446,6 +448,7 @@ export default class Block extends EventsDispatcher<BlockEvents> {
    */
   public set selected(state: boolean) {
     this.holder.classList.toggle(Block.CSS.selected, state);
+    this.call(BlockToolAPI.TOGGLE_SELECTED, { state });
 
     const fakeCursorWillBeAdded = state === true && SelectionUtils.isRangeInsideContainer(this.holder);
     const fakeCursorWillBeRemoved = state === false && SelectionUtils.isFakeCursorInsideContainer(this.holder);
