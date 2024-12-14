@@ -114,5 +114,11 @@ export interface EditorConfig {
      * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/nonce
      */
     nonce?: string;
+  },
+  // 矩形选择工具的配置
+  rectangleSelection: {
+    containerHolder: string; // 容器id
+    enable: boolean; // 是否启用
+    editorVisible: () => boolean; // 编辑器是否可见，不可见时不处理
   }
 }

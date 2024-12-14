@@ -10,6 +10,8 @@ import $ from '../dom';
 import SelectionUtils from '../selection';
 import Block from '../block';
 import * as _ from '../utils';
+import {EditorConfig} from "../../../types";
+import {ModuleConfig} from "../../types-internal/module-config";
 
 /**
  *
@@ -18,18 +20,8 @@ export default class RectangleSelection extends Module {
   // 指定rectangle的容器
   private container: HTMLElement | undefined;
   private enable: boolean;
-  constructor(args: any) {
-    super(args);
-    const { config } = args;
-    const containerHolder = config.rectangleSelection?.containerHolder;
-    if (containerHolder) {
-      this.container = document.getElementById(containerHolder) || undefined;
-    }
-    this.enable = config.rectangleSelection?.enable || false;
-    console.log('args==',args);
-    console.log('this.container==',this.container);
-    console.log('this.enable===',this.enable);
-  }
+  private editorVisible: () => boolean;
+
   /**
    * CSS classes for the Block
    *
@@ -121,6 +113,23 @@ export default class RectangleSelection extends Module {
    * Creating rect and hang handlers
    */
   public prepare(): void {
+    const { rectangleSelection } = this.config;
+
+    if (!rectangleSelection) {
+      return;
+    }
+    const containerHolder = rectangleSelection?.containerHolder;
+    if (containerHolder) {
+      this.container = document.getElementById(containerHolder) || undefined;
+    }
+    this.enable = rectangleSelection?.enable || false;
+    if (rectangleSelection.editorVisible && _.isFunction(rectangleSelection.editorVisible)) {
+      this.editorVisible = rectangleSelection.editorVisible;
+    } else {
+      this.editorVisible = () => {
+        return true;
+      };
+    }
     if (!this.enable || !this.container){
       return;
     }
@@ -203,7 +212,10 @@ export default class RectangleSelection extends Module {
     const { container } = this.genHTML();
 
     this.listeners.on(container, 'mousedown', (mouseEvent: MouseEvent) => {
-      this.processMouseDown(mouseEvent);
+      // 编辑器可见时才处理
+      if (this.editorVisible()) {
+        this.processMouseDown(mouseEvent);
+      }
     }, false);
 
     this.listeners.on(document.body, 'mousemove', _.throttle((mouseEvent: MouseEvent) => {
@@ -315,12 +327,11 @@ export default class RectangleSelection extends Module {
    * @returns {Object<string, Element>}
    */
   private genHTML(): {container: Element; overlay: Element} {
-    const { UI } = this.Editor;
-
+    // const { UI } = this.Editor;
     // const container = UI.nodes.holder.querySelector('.' + UI.CSS.editorWrapper);
 
     const container= this.container;
-    console.log('container=====', container);
+
     const overlay = $.make('div', RectangleSelection.CSS.overlay, {});
     const overlayContainer = $.make('div', RectangleSelection.CSS.overlayContainer, {});
     const overlayRectangle = $.make('div', RectangleSelection.CSS.rect, {});
