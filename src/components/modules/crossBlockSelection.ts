@@ -41,6 +41,8 @@ export default class CrossBlockSelection extends Module {
     const { BlockManager } = this.Editor;
 
     this.firstSelectedBlock = BlockManager.getBlock(event.target as HTMLElement);
+    this.firstSelectedBlockIndex = BlockManager.getBlockIndex(this.firstSelectedBlock);
+    this.endSelectedBlockIndex = this.firstSelectedBlockIndex;
     this.lastSelectedBlock = this.firstSelectedBlock;
 
     this.listeners.on(document, 'mouseover', this.onMouseOver);
@@ -211,9 +213,16 @@ export default class CrossBlockSelection extends Module {
       return;
     }
 
+    //
     if (targetBlock === this.firstSelectedBlock) {
       relatedBlock.selected = false;
       targetBlock.selected = false;
+      // 检查有没有被选择的，解决场景:向下选择-》移除编辑器-》移入编辑器并选中上面的block
+      if (this.firstSelectedBlockIndex !== this.endSelectedBlockIndex) {
+        for (let i = Math.min(this.firstSelectedBlockIndex,this.endSelectedBlockIndex); i <= Math.max(this.firstSelectedBlockIndex,this.endSelectedBlockIndex); i++) {
+          BlockManager.blocks[i].selected = false;
+        }
+      }
 
       BlockSelection.clearCache();
 
@@ -229,32 +238,75 @@ export default class CrossBlockSelection extends Module {
   /**
    * Change blocks selection state between passed two blocks.
    *
-   * @param {Block} firstBlock - first block in range
-   * @param {Block} lastBlock - last block in range
+   * @param {Block} relateBlock - 上一个block
+   * @param {Block} targetBlock - 当前block
    */
-  private toggleBlocksSelectedState(firstBlock: Block, lastBlock: Block): void {
+  private toggleBlocksSelectedState(relateBlock: Block, targetBlock: Block): void {
     const { BlockManager, BlockSelection } = this.Editor;
-    const fIndex = BlockManager.blocks.indexOf(firstBlock);
-    const lIndex = BlockManager.blocks.indexOf(lastBlock);
-
-    /**
-     * If first and last block have the different selection state
-     * it means we should't toggle selection of the first selected block.
-     * In the other case we shouldn't toggle the last selected block.
-     */
-    const shouldntSelectFirstBlock = firstBlock.selected !== lastBlock.selected;
-
-    for (let i = Math.min(fIndex, lIndex); i <= Math.max(fIndex, lIndex); i++) {
-      const block = BlockManager.blocks[i];
-
-      if (
-        block !== this.firstSelectedBlock &&
-        block !== (shouldntSelectFirstBlock ? firstBlock : lastBlock)
-      ) {
-        BlockManager.blocks[i].selected = !BlockManager.blocks[i].selected;
-
-        BlockSelection.clearCache();
+    const relateIndex = BlockManager.blocks.indexOf(relateBlock);
+    const targetIndex = BlockManager.blocks.indexOf(targetBlock);
+    console.log('relateIndex==',relateIndex);
+    console.log('targetIndex==',targetIndex);
+    console.log('this.firstSelectedBlockIndex==',this.firstSelectedBlockIndex);
+    console.log('this.endSelectedBlockIndex==',this.endSelectedBlockIndex);
+    // 选处理取消选中的，后处理选中的（否则级联选中有问题）
+    // 区域外已选中的取消选中
+    // 判断方向
+    if (targetIndex > this.firstSelectedBlockIndex) {
+      // 向下选择
+      if (targetIndex < relateIndex) {
+        // 向内回收,使用targetIndex + 1而不使用 relateIndex，解决场景：向下选择-》移除编辑器-》移入编辑器并选中上面的block
+        for (let i = targetIndex + 1; i <= this.endSelectedBlockIndex; i++) {
+          BlockManager.blocks[i].selected = false;
+        }
+      }
+      // 防止回环选择，场景：向上选择后移除editor，越过起始block再向下移入editor
+      if (relateIndex < this.firstSelectedBlockIndex) {
+        for (let i = relateIndex; i < this.firstSelectedBlockIndex; i++) {
+          BlockManager.blocks[i].selected = false;
+        }
+      }
+    } else {
+      // 向上选择 使用targetIndex而不使用 relateIndex，解决场景：向下选择-》移除编辑器-》移入编辑器并选中上面的block
+      if (targetIndex > relateIndex ) {
+        // 向内回收
+        for (let i = this.endSelectedBlockIndex; i < targetIndex; i++) {
+          BlockManager.blocks[i].selected = false;
+        }
+      }
+      // 防止回环选择，场景：向下选择后移除editor，越过起始block再向上移入editor
+      if (relateIndex > this.firstSelectedBlockIndex) {
+        for (let i = this.firstSelectedBlockIndex + 1; i <= relateIndex; i++) {
+          BlockManager.blocks[i].selected = false;
+        }
       }
     }
+
+    // 区域内所有选中-》考虑子级block的场景，所以需要重新全部选中
+    for (let i = Math.min(this.firstSelectedBlockIndex, targetIndex); i <= Math.max(this.firstSelectedBlockIndex, targetIndex); i++) {
+      BlockManager.blocks[i].selected = true;
+    }
+
+    this.endSelectedBlockIndex = targetIndex;
+    // /**
+    //  * If first and last block have the different selection state
+    //  * it means we should't toggle selection of the first selected block.
+    //  * In the other case we shouldn't toggle the last selected block.
+    //  */
+    // const shouldntSelectFirstBlock = firstBlock.selected !== lastBlock.selected;
+    //
+    // for (let i = Math.min(fIndex, lIndex); i <= Math.max(fIndex, lIndex); i++) {
+    //   const block = BlockManager.blocks[i];
+    //
+    //   if (
+    //     block !== this.firstSelectedBlock &&
+    //     block !== (shouldntSelectFirstBlock ? firstBlock : lastBlock)
+    //   ) {
+    //     // BlockManager.blocks[i].selected = !BlockManager.blocks[i].selected;
+    //     BlockManager.blocks[i].selected = true;
+    //
+    //     BlockSelection.clearCache();
+    //   }
+    // }
   }
 }
