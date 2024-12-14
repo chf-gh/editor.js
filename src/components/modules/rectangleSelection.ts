@@ -15,6 +15,21 @@ import * as _ from '../utils';
  *
  */
 export default class RectangleSelection extends Module {
+  // 指定rectangle的容器
+  private container: HTMLElement | undefined;
+  private enable: boolean;
+  constructor(args: any) {
+    super(args);
+    const { config } = args;
+    const containerHolder = config.rectangleSelection?.containerHolder;
+    if (containerHolder) {
+      this.container = document.getElementById(containerHolder) || undefined;
+    }
+    this.enable = config.rectangleSelection?.enable || false;
+    console.log('args==',args);
+    console.log('this.container==',this.container);
+    console.log('this.enable===',this.enable);
+  }
   /**
    * CSS classes for the Block
    *
@@ -106,6 +121,9 @@ export default class RectangleSelection extends Module {
    * Creating rect and hang handlers
    */
   public prepare(): void {
+    if (!this.enable || !this.container){
+      return;
+    }
     this.enableModuleBindings();
   }
 
@@ -136,13 +154,16 @@ export default class RectangleSelection extends Module {
       `.${this.Editor.InlineToolbar.CSS.inlineToolbar}`,
     ];
 
-    const startsInsideEditor = elemWhereSelectionStart.closest('.' + this.Editor.UI.CSS.editorWrapper);
+    // const startsInsideEditor = elemWhereSelectionStart.closest('.' + this.Editor.UI.CSS.editorWrapper);
     const startsInSelectorToAvoid = selectorsToAvoid.some((selector) => !!elemWhereSelectionStart.closest(selector));
 
     /**
      * If selection starts outside of the editor or inside the blocks or on Editor UI elements, do not handle it
      */
-    if (!startsInsideEditor || startsInSelectorToAvoid) {
+    // if (!startsInsideEditor || startsInSelectorToAvoid) {
+    //   return;
+    // }
+    if (startsInSelectorToAvoid) {
       return;
     }
 
@@ -296,7 +317,10 @@ export default class RectangleSelection extends Module {
   private genHTML(): {container: Element; overlay: Element} {
     const { UI } = this.Editor;
 
-    const container = UI.nodes.holder.querySelector('.' + UI.CSS.editorWrapper);
+    // const container = UI.nodes.holder.querySelector('.' + UI.CSS.editorWrapper);
+
+    const container= this.container;
+    console.log('container=====', container);
     const overlay = $.make('div', RectangleSelection.CSS.overlay, {});
     const overlayContainer = $.make('div', RectangleSelection.CSS.overlayContainer, {});
     const overlayRectangle = $.make('div', RectangleSelection.CSS.rect, {});

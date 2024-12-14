@@ -14,7 +14,7 @@
       document.body.classList.add("dark-mode");
     }
   </script>
-  <div class="ce-example">
+  <div class="ce-example" id="rectangleSelectContainer">
     <div class="ce-example__header">
       <a class="ce-example__header-logo" href="https://codex.so/editor">Editor.js 🤩🧦🤨</a>
 
@@ -25,7 +25,7 @@
         <a href="https://editorjs.io/creating-a-block-tool" target="_blank">API</a>
       </div>
     </div>
-    <div class="ce-example__content">
+    <div class="ce-example__content" >
       <div id="editorjs"></div>
       <div class="ce-example__button" id="saveButton">
         editor.save()
@@ -106,6 +106,11 @@
      * @see docs/installation.md for mode details
      */
     const editorConfig = {
+
+      rectangleSelection: {
+        containerHolder: 'rectangleSelectContainer',
+        enable: true
+      },
       /**
        * Enable/Disable the read only mode
        */
