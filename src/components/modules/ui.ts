@@ -677,6 +677,12 @@ export default class UI extends Module<UINodes> {
 
       this.Editor.Toolbar.moveAndOpen(clickedBlock);
     }
+    if (isClickedInsideBlockSettingsToggler) {
+      // 点击把手时如果有选择的block，则不要处理,批量移动需要选中的block
+      if (this.Editor.BlockSelection.anyBlockSelected) {
+        return;
+      }
+    }
 
     /**
      * Clear Selection if user clicked somewhere
