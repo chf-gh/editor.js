@@ -581,13 +581,28 @@ export default class Toolbar extends Module<ToolbarNodes> {
        */
       e.stopPropagation();
 
-      this.settingsTogglerClicked();
+      this.Editor.BlockManager.currentBlock = this.hoveredBlock;
 
       if (this.toolboxInstance?.opened) {
         this.toolboxInstance.close();
       }
 
       tooltip.hide(true);
+    }, true);
+    // mouseup时弹出 toolbox，
+    this.readOnlyMutableListeners.on(this.nodes.settingsToggler, 'mouseup', (e) => {
+      /**
+       * Stop propagation to prevent block selection clearance
+       *
+       * @see UI.documentClicked
+       */
+      e.stopPropagation();
+
+      if (this.Editor.BlockSettings.opened) {
+        this.Editor.BlockSettings.close();
+      } else {
+        this.Editor.BlockSettings.open(this.hoveredBlock);
+      }
     }, true);
 
     /**
@@ -619,22 +634,6 @@ export default class Toolbar extends Module<ToolbarNodes> {
     this.readOnlyMutableListeners.clearAll();
   }
 
-  /**
-   * Clicks on the Block Settings toggler
-   */
-  private settingsTogglerClicked(): void {
-    /**
-     * We need to update Current Block because user can click on toggler (thanks to appearing by hover) without any clicks on editor
-     * In this case currentBlock will point last block
-     */
-    this.Editor.BlockManager.currentBlock = this.hoveredBlock;
-
-    if (this.Editor.BlockSettings.opened) {
-      this.Editor.BlockSettings.close();
-    } else {
-      this.Editor.BlockSettings.open(this.hoveredBlock);
-    }
-  }
 
   /**
    * Draws Toolbar UI
