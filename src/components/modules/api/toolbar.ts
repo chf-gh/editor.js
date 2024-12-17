@@ -18,6 +18,7 @@ export default class ToolbarAPI extends Module {
       toggleBlockSettings: (openingState?: boolean): void => this.toggleBlockSettings(openingState),
       toggleToolbox: (openingState?: boolean): void => this.toggleToolbox(openingState),
       hideBlockActions: (forceClose?:boolean): void => this.hideBlockActions(forceClose),
+      nodes: this.Editor.Toolbar.nodes,
     };
   }
 

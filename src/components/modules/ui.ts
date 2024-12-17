@@ -404,9 +404,10 @@ export default class UI extends Module<UINodes> {
       /**
        * Do not trigger 'block-hovered' for cross-block selection
        */
-      if (this.Editor.BlockSelection.anyBlockSelected) {
-        return;
-      }
+      // block选中后禁止block-setting移动，已注释，需要它移动
+      // if (this.Editor.BlockSelection.anyBlockSelected) {
+      //   return;
+      // }
 
       if (!hoveredBlock) {
         return;

@@ -28,4 +28,9 @@ export interface Toolbar {
    * 隐藏 blockAction
    */
   hideBlockActions(forceClose?:boolean): void;
+
+  /**
+   * 节点元素
+   */
+  nodes: {} as any;
 }
