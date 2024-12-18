@@ -161,7 +161,10 @@ export default class BlockEvents extends Module {
   public dragLeave(event: DragEvent): void {
     const block = this.Editor.BlockManager.getBlockByChildNode(event.target as Node);
     if (block) {
-      block.dropTarget = false;
+      // 增加是否真正移出blcok的判断，防止拖入示意条闪烁
+      if ((!event.relatedTarget) || (!block.holder.contains(event.relatedTarget as Node))) {
+        block.dropTarget = false;
+      }
     }
   }
 
