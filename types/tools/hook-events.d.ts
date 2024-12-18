@@ -10,6 +10,8 @@ export interface MoveEventDetail {
    * index the block was moved to
    */
   toIndex: number;
+  // 选中的block集合
+  selectedBlockAndIndent?: {id: string, indent: number}[]
 }
 
 /**

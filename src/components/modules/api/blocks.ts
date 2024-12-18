@@ -24,7 +24,7 @@ export default class BlocksAPI extends Module {
       renderFromHTML: (data: string): Promise<void> => this.renderFromHTML(data),
       delete: (index?: number): void => this.delete(index),
       swap: (fromIndex: number, toIndex: number): void => this.swap(fromIndex, toIndex),
-      move: (toIndex: number, fromIndex?: number): void => this.move(toIndex, fromIndex),
+      move: (toIndex: number, fromIndex?: number, selectedBlockAndIndent?: {id: string, indent: number}[]): void => this.move(toIndex, fromIndex, selectedBlockAndIndent),
       getBlockByIndex: (index: number): BlockAPIInterface | undefined => this.getBlockByIndex(index),
       getById: (id: string): BlockAPIInterface | null => this.getById(id),
       getCurrentBlockIndex: (): number => this.getCurrentBlockIndex(),
@@ -149,9 +149,10 @@ export default class BlocksAPI extends Module {
    *
    * @param {number} toIndex - index to move to
    * @param {number} fromIndex - index to move from
+   * @param selectedBlockAndIndent: 选中的元素及其indent
    */
-  public move(toIndex: number, fromIndex?: number): void {
-    this.Editor.BlockManager.move(toIndex, fromIndex);
+  public move(toIndex: number, fromIndex?: number, selectedBlockAndIndent?: {id: string, indent: number}[]): void {
+    this.Editor.BlockManager.move(toIndex, fromIndex, selectedBlockAndIndent);
   }
 
   /**

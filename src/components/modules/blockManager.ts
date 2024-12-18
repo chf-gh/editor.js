@@ -805,8 +805,9 @@ export default class BlockManager extends Module {
    *
    * @param {number} toIndex - index where to move Block
    * @param {number} fromIndex - index of Block to move
+   * @param selectedBlockAndIndent: 选中的元素及其indent
    */
-  public move(toIndex, fromIndex = this.currentBlockIndex): void {
+  public move(toIndex, fromIndex = this.currentBlockIndex, selectedBlockAndIndent?: {id: string, indent: number}[]): void {
     // make sure indexes are valid and within a valid range
     if (isNaN(toIndex) || isNaN(fromIndex)) {
       _.log(`Warning during 'move' call: incorrect indices provided.`, 'warn');
@@ -821,7 +822,7 @@ export default class BlockManager extends Module {
     }
 
     /** Move up current Block */
-    this._blocks.move(toIndex, fromIndex);
+    this._blocks.move(toIndex, fromIndex, selectedBlockAndIndent);
 
     /** Now actual block moved so that current block index changed */
     this.currentBlockIndex = toIndex;

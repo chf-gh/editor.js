@@ -18,6 +18,10 @@ interface BlockMovedEventDetail extends BlockMutationEventDetail {
    * New block position
    */
   toIndex: number;
+  selectedBlockAndIndent?: {
+    id: string;
+    indent: number;
+  }
 }
 
 /**

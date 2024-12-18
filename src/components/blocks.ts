@@ -145,8 +145,9 @@ export default class Blocks {
    *
    * @param {number} toIndex - new index of the block
    * @param {number} fromIndex - block to move
+   * @param selectedBlockAndIndent: 选中的元素及其indent
    */
-  public move(toIndex: number, fromIndex: number): void {
+  public move(toIndex: number, fromIndex: number, selectedBlockAndIndent?: {id: string, indent: number}[]): void {
     /**
      * cut out the block, move the DOM element and insert at the desired index
      * again (the shifting within the blocks array will happen automatically).
@@ -173,6 +174,7 @@ export default class Blocks {
     const event: MoveEvent = this.composeBlockEvent('move', {
       fromIndex,
       toIndex,
+      selectedBlockAndIndent,
     });
 
     block.call(BlockToolAPI.MOVED, event);
