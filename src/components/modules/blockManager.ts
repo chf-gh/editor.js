@@ -507,18 +507,15 @@ export default class BlockManager extends Module {
         return;
       }
 
-      const [ cleanData ] = sanitizeBlocks([ blockToMergeDataRaw ], targetBlock.tool.sanitizeConfig);
+      // const [ cleanData ] = sanitizeBlocks([ blockToMergeDataRaw ], targetBlock.tool.sanitizeConfig);
 
-      blockToMergeData = cleanData;
+      blockToMergeData = blockToMergeDataRaw;
 
     /**
      * 2) Blocks with different Tools if they provides conversionConfig
      */
     } else if (targetBlock.mergeable && isBlockConvertable(blockToMerge, 'export') && isBlockConvertable(targetBlock, 'import')) {
       const mergeData = await blockToMerge.exportDataAsMergeData();
-      const cleanTextData = clean(mergeData.text, targetBlock.tool.sanitizeConfig);
-      // 覆盖text数据
-      mergeData.text = cleanTextData;
       blockToMergeData = convertStringToBlockData(mergeData, targetBlock.tool.conversionConfig);
     }
 

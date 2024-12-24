@@ -148,8 +148,10 @@ export function convertBlockDataToMergeData(blockData: BlockToolData, conversion
       log('Conversion «export» property must be a string or function. ' +
       'String means key of saved data object to export. Function should export processed string to export.');
     }
-
-    return '';
+    return {
+      text: [],
+      indent: 0,
+    };
   }
 }
 
