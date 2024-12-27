@@ -47,6 +47,16 @@ export interface PatternPasteEventDetail {
 export interface PatternPasteEvent extends CustomEvent {
   readonly detail: PatternPasteEventDetail;
 }
+export interface PlainPasteEventDetail {
 
-export type PasteEvent = HTMLPasteEvent | FilePasteEvent | PatternPasteEvent;
-export type PasteEventDetail = HTMLPasteEventDetail | FilePasteEventDetail | PatternPasteEventDetail;
+  /**
+   * Pasted string
+   */
+  data: string;
+}
+
+export interface PlainPasteEvent extends CustomEvent {
+  readonly detail: PlainPasteEventDetail;
+}
+export type PasteEvent = HTMLPasteEvent | FilePasteEvent | PatternPasteEvent | PlainPasteEvent;
+export type PasteEventDetail = HTMLPasteEventDetail | FilePasteEventDetail | PatternPasteEventDetail | PlainPasteEventDetail;

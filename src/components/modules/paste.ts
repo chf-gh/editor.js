@@ -731,8 +731,8 @@ export default class Paste extends Module {
 
         content.textContent = text;
 
-        const event = this.composePasteEvent('tag', {
-          data: content,
+        const event = this.composePasteEvent('plain', {
+          data: text,
         });
 
         return {
