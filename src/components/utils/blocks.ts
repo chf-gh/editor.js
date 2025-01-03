@@ -161,7 +161,7 @@ export function convertBlockDataToMergeData(blockData: BlockToolData, conversion
  * @param stringToImport - BlockToolMergeData to convert
  * @param conversionConfig - tool's conversion config
  */
-export function convertStringToBlockData(mergeDataToImport: BlockToolMergeData, conversionConfig?: ConversionConfig): BlockToolData {
+export function convertExportDataToBlockData(mergeDataToImport: BlockToolMergeData, conversionConfig?: ConversionConfig): BlockToolData {
   const importProp = conversionConfig?.import;
 
   if (isFunction(importProp)) {

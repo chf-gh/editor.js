@@ -18,8 +18,7 @@ import { BlockAddedMutationType } from '../../../types/events/block/BlockAdded';
 import { BlockMovedMutationType } from '../../../types/events/block/BlockMoved';
 import { BlockChangedMutationType } from '../../../types/events/block/BlockChanged';
 import { BlockChanged } from '../events';
-import { clean, sanitizeBlocks } from '../utils/sanitizer';
-import { convertStringToBlockData, isBlockConvertable } from '../utils/blocks';
+import { convertExportDataToBlockData, isBlockConvertable } from '../utils/blocks';
 import PromiseQueue from '../utils/promise-queue';
 import {emitter} from '../emitter';
 import {SavedData} from "../../../types/data-formats";
@@ -516,7 +515,7 @@ export default class BlockManager extends Module {
      */
     } else if (targetBlock.mergeable && isBlockConvertable(blockToMerge, 'export') && isBlockConvertable(targetBlock, 'import')) {
       const mergeData = await blockToMerge.exportDataAsMergeData();
-      blockToMergeData = convertStringToBlockData(mergeData, targetBlock.tool.conversionConfig);
+      blockToMergeData = convertExportDataToBlockData(mergeData, targetBlock.tool.conversionConfig);
     }
 
     if (blockToMergeData === undefined) {
@@ -866,19 +865,9 @@ export default class BlockManager extends Module {
     const exportedData = await blockToConvert.exportDataAsMergeData();
 
     /**
-     * Clean exported data with replacing sanitizer config
-     */
-    const cleanTextData: string = clean(
-      exportedData.text,
-      replacingTool.sanitizeConfig
-    );
-    // 覆盖text数据
-    exportedData.text = cleanTextData;
-
-    /**
      * Now using Conversion Config "import" we compose a new Block data
      */
-    let newBlockData = convertStringToBlockData(exportedData, replacingTool.conversionConfig);
+    let newBlockData = convertExportDataToBlockData(exportedData, replacingTool.conversionConfig);
 
     /**
      * Optional data overrides.
