@@ -292,7 +292,6 @@ export default class BlockManager extends Module {
     if (newIndex === undefined) {
       newIndex = this.currentBlockIndex + (replace ? 0 : 1);
     }
-    console.log('insert block ',source)
 
     const block = this.composeBlock({
       id,
