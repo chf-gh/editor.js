@@ -16,3 +16,16 @@ export function isToolConvertable(tool: BlockTool, direction: 'export' | 'import
 
   return isFunction(conversionProp) || isString(conversionProp);
 }
+
+/**
+ * 是否指定了转换规则
+ */
+export function isToolHasConvertRules(tool: BlockTool): boolean {
+  if (!tool.conversionConfig) {
+    return false;
+  }
+
+  const conversionProp = tool.conversionConfig['convertFrom'];
+
+  return Array.isArray(conversionProp);
+}

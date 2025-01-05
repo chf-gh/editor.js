@@ -20,4 +20,9 @@ export interface ConversionConfig {
    * 2. Function — accepts saved Tool data and create a string to export
    */
   export?: ((data: BlockToolData) => BlockToolMergeData);
+
+  /**
+   * 可以被那些block转换
+   */
+  convertFrom?: string[];
 }
