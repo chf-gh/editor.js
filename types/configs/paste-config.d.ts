@@ -29,7 +29,7 @@ interface PasteConfigSpecified {
   /**
    * Object with arrays of extensions and MIME types Tool can substitute
    */
-  files?: {extensions?: string[], mimeTypes?: string[]};
+  files?: {extensions?: string[], mimeTypes?: string[], customFilter?: (file: File) => boolean};
 }
 
 /**

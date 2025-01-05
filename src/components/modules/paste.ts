@@ -67,6 +67,10 @@ interface FilesSubstitution {
    * @type {string[]}
    */
   mimeTypes: string[];
+  /**
+   * 自定义过滤器
+   */
+  customFilter: (file: File) => boolean;
 }
 
 /**
@@ -404,9 +408,9 @@ export default class Paste extends Module {
     }
 
     const { files = {} } = tool.pasteConfig;
-    let { extensions, mimeTypes } = files;
+    let { extensions, mimeTypes, customFilter } = files;
 
-    if (!extensions && !mimeTypes) {
+    if (!extensions && !mimeTypes && !customFilter) {
       return;
     }
 
@@ -418,6 +422,12 @@ export default class Paste extends Module {
     if (mimeTypes && !Array.isArray(mimeTypes)) {
       _.log(`«mimeTypes» property of the onDrop config for «${tool.name}» Tool should be an array`);
       mimeTypes = [];
+    }
+    if (customFilter && !_.isFunction(customFilter)) {
+      _.log(`«customFilter» property of the onDrop config for «${tool.name}» Tool should be an function`);
+      customFilter = (file: File) => {
+        return false;
+      }
     }
 
     if (mimeTypes) {
@@ -431,10 +441,15 @@ export default class Paste extends Module {
         return true;
       });
     }
-
+    if (!customFilter) {
+      customFilter = (file: File) => {
+        return false;
+      }
+    }
     this.toolsFiles[tool.name] = {
       extensions: extensions || [],
       mimeTypes: mimeTypes || [],
+      customFilter
     };
   }
 
@@ -550,7 +565,7 @@ export default class Paste extends Module {
     const foundConfig = Object
       .entries(this.toolsFiles)
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
-      .find(([toolName, { mimeTypes, extensions } ]) => {
+      .find(([toolName, { mimeTypes, extensions, customFilter } ]) => {
         const [fileType, fileSubtype] = file.type.split('/');
 
         const foundExt = extensions.find((ext) => ext.toLowerCase() === extension.toLowerCase());
@@ -559,8 +574,8 @@ export default class Paste extends Module {
 
           return type === fileType && (subtype === fileSubtype || subtype === '*');
         });
-
-        return !!foundExt || !!foundMimeType;
+        const customFilterPass = customFilter(file)
+        return !!foundExt || !!foundMimeType || customFilterPass;
       });
 
     if (!foundConfig) {
