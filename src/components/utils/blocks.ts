@@ -5,7 +5,7 @@ import {BlockToolData, BlockToolMergeData} from '../../../types/tools/block-tool
 import type Block from '../block';
 import BlockTool from '../tools/block';
 import { isFunction, isString, log, equals, isEmpty } from '../utils';
-import { isToolConvertable } from './tools';
+import { isToolConvertable, isToolHasConvertRules } from './tools';
 
 
 /**
@@ -52,6 +52,14 @@ export async function getConvertibleToolsForBlock(block: BlockAPI, allBlockTools
   const blockData = savedData.data;
 
   return allBlockTools.reduce((result, tool) => {
+    // 必须指定了可以转换为当前block的来源
+    if (!isToolHasConvertRules(tool)) {
+      return result;
+    }
+    const conversionConfig = tool.conversionConfig
+    if ((!conversionConfig.convertFrom) || (!conversionConfig.convertFrom.includes(block.name))) {
+      return result;
+    }
     /**
      * Skip tools without «import» rule specified
      */
