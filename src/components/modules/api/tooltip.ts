@@ -1,5 +1,5 @@
 import { Tooltip as ITooltip } from '../../../../types/api';
-import type { TooltipOptions, TooltipContent } from 'codex-tooltip/types';
+import type { TooltipOptions, TooltipContent } from '../../../../types/tooltip/index';
 import Module from '../../__module';
 import { ModuleConfig } from '../../../types-internal/module-config';
 import * as tooltip from '../../utils/tooltip';

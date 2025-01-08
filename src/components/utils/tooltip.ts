@@ -2,8 +2,8 @@
 /**
  * Use external module CodeX Tooltip
  */
-import CodeXTooltips from 'codex-tooltip';
-import type { TooltipOptions, TooltipContent } from 'codex-tooltip/types';
+import CodeXTooltips from './tooltip/src/index';
+import type { TooltipOptions, TooltipContent } from '../../../types/tooltip/index';
 
 /**
  * Tooltips lib: CodeX Tooltips
