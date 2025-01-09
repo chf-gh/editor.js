@@ -3,10 +3,10 @@ import {
   BlockTool as IBlockTool,
   BlockToolData,
   BlockTune as IBlockTune,
+  PopoverItemParams,
   SanitizerConfig,
-  ToolConfig,
   ToolboxConfigEntry,
-  PopoverItemParams
+  ToolConfig
 } from '../../../types';
 
 import { SavedData } from '../../../types/data-formats';
@@ -919,6 +919,7 @@ export default class Block extends EventsDispatcher<BlockEvents> {
       const everyRecordIsMutationFree = mutationsOrInputEvent.length > 0 && mutationsOrInputEvent.every((record) => {
         const { addedNodes, removedNodes, target, type, attributeName} = record;
 
+        // console.log('record==',record)
         let judgeNode = target;
         // 判断是否是文本节点， .closest 方法文本节点不能使用
         if (target.nodeType === Node.TEXT_NODE) {
@@ -955,33 +956,34 @@ export default class Block extends EventsDispatcher<BlockEvents> {
           return true;
         }
         // 如果上层元素忽略修改则直接忽略
-        const ignoreMutation = (judgeNode as HTMLElement).closest('.ignore-mutation-class')
+        const ignoreMutation = (judgeNode as HTMLElement).closest('.ignore-mutation-class');
         if (ignoreMutation) {
           return true;
         }
         // console.log('record===',record)
         // codex-editor__redactor
         if (type === 'attributes') {
-          // if (attributeName == "class") {
-            if (classList){
-              // 过滤column中editor的class变化
-              if (
-                // 过滤手动忽略的class变化
-                classList.contains("ignore-mutation-class")
-                // 过滤column中的块聚焦的改变的class变化
-                ||classList.contains("ce-block")
-                ||classList.contains("codex-editor")
-                ||classList.contains("codex-editor__redactor")
-                ||classList.contains("codex-editor-overlay")
-              ) {
-                // console.log('column中editor的class变化=====================', true);
-                return true;
-              }
+          // 过滤data-empty属性
+          if (attributeName === 'data-empty') {
+            return true;
+          }
+          if (classList) {
+            // 过滤column中editor的class变化
+            if (
+              // 过滤手动忽略的class变化
+              classList.contains('ignore-mutation-class')
+              // 过滤column中的块聚焦的改变的class变化
+              ||classList.contains('ce-block')
+              ||classList.contains('codex-editor')
+              ||classList.contains('codex-editor__redactor')
+              ||classList.contains('codex-editor-overlay')
+            ) {
+              // console.log('column中editor的class变化=====================', true);
+              return true;
             }
+          }
           // }
-        }
-
-        if (type == 'childList'){
+        } else if (type === 'childList'){
           // column中内联工具按钮增加
           if (classList && classList.contains('ce-inline-tool')){
             return true;
@@ -998,10 +1000,7 @@ export default class Block extends EventsDispatcher<BlockEvents> {
           if (!$.isElement(node)) {
             return false;
           }
-          if (
-            (node as HTMLElement).closest('.codex-editor-overlay') != null
-            || (node as HTMLElement).closest('.ce-toolbar') != null
-            || (node as HTMLElement).closest('.ce-inline-toolbar') != null){
+          if ( (node as Element).closest('.codex-editor-overlay, .ce-toolbar, .ce-inline-toolbar') != null ){
             return true;
           }
           return false;
