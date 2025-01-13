@@ -892,27 +892,29 @@ export default class Paste extends Module {
    */
   private insertEditorJSData(blocks: Pick<SavedData, 'id' | 'data' | 'tool'>[]): void {
     const { BlockManager, Caret, Tools } = this.Editor;
-    const sanitizedBlocks = sanitizeBlocks(blocks, (name) =>
-      Tools.blockTools.get(name).sanitizeConfig
-    );
+    // 禁用sanitize
+    // const sanitizedBlocks = sanitizeBlocks(blocks, (name) =>
+    //   Tools.blockTools.get(name).sanitizeConfig
+    // );
+    if (blocks && blocks.length > 0) {
+      blocks.forEach(({ tool, data }, i) => {
+        let needToReplaceCurrentBlock = false;
 
-    sanitizedBlocks.forEach(({ tool, data }, i) => {
-      let needToReplaceCurrentBlock = false;
+        if (i === 0) {
+          const isCurrentBlockDefault = BlockManager.currentBlock && BlockManager.currentBlock.tool.isDefault;
 
-      if (i === 0) {
-        const isCurrentBlockDefault = BlockManager.currentBlock && BlockManager.currentBlock.tool.isDefault;
+          needToReplaceCurrentBlock = isCurrentBlockDefault && BlockManager.currentBlock.isEmpty;
+        }
 
-        needToReplaceCurrentBlock = isCurrentBlockDefault && BlockManager.currentBlock.isEmpty;
-      }
+        const block = BlockManager.insert({
+          tool,
+          data,
+          replace: needToReplaceCurrentBlock,
+        });
 
-      const block = BlockManager.insert({
-        tool,
-        data,
-        replace: needToReplaceCurrentBlock,
+        Caret.setToBlock(block, Caret.positions.END);
       });
-
-      Caret.setToBlock(block, Caret.positions.END);
-    });
+    }
   }
 
   /**
