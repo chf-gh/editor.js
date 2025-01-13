@@ -37,11 +37,12 @@ export default class Saver extends Module {
       });
 
       const extractedData = await Promise.all(chainData) as Array<Pick<SavedData, 'data' | 'tool'>>;
-      const sanitizedData = await sanitizeBlocks(extractedData, (name) => {
-        return Tools.blockTools.get(name).sanitizeConfig;
-      });
+      // 禁用sanitize
+      // const sanitizedData = await sanitizeBlocks(extractedData, (name) => {
+      //   return Tools.blockTools.get(name).sanitizeConfig;
+      // });
 
-      return this.makeOutput(sanitizedData);
+      return this.makeOutput(extractedData);
     } catch (e) {
       _.logLabeled(`Saving failed due to the Error %o`, 'error', e);
     }
