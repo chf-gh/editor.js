@@ -1,10 +1,11 @@
-import { BlockId } from '../../../types';
+import {BlockId} from '../../../types';
 import { BlockMutationEvent, BlockMutationType } from '../../../types/events/block';
 import { ModuleConfig } from '../../types-internal/module-config';
 import Module from '../__module';
 import { modificationsObserverBatchTimeout } from '../constants';
 import { BlockChanged, FakeCursorAboutToBeToggled, FakeCursorHaveBeenSet, RedactorDomChanged } from '../events';
 import * as _ from '../utils';
+import {emitter} from '../emitter';
 
 /**
  * We use map of block mutations to filter only unique events
@@ -108,6 +109,10 @@ export default class ModificationsObserver extends Module {
     if (this.disabled || !_.isFunction(this.config.onChange)) {
       return;
     }
+    // 自定义内容修改的事件
+    emitter.emit('editorMutate',{
+      event
+    });
 
     this.batchingOnChangeQueue.set(`block:${event.detail.target.id}:event:${event.type as BlockMutationType}`, event);
 

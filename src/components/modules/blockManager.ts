@@ -20,8 +20,7 @@ import { BlockChangedMutationType } from '../../../types/events/block/BlockChang
 import { BlockChanged } from '../events';
 import { convertExportDataToBlockData, isBlockConvertable } from '../utils/blocks';
 import PromiseQueue from '../utils/promise-queue';
-import {emitter} from '../emitter';
-import {SavedData} from "../../../types/data-formats";
+import {SavedData} from '../../../types/data-formats';
 
 /**
  * @typedef {BlockManager} BlockManager
@@ -999,8 +998,6 @@ export default class BlockManager extends Module {
    * @param detailData - additional data to pass with change event
    */
   private blockDidMutated<Type extends BlockMutationType>(mutationType: Type, block: Block, detailData: BlockMutationEventDetailWithoutTarget<Type>): Block {
-    // 自定义内容修改的事件
-    emitter.emit('editor-change');
     const event = new CustomEvent(mutationType, {
       detail: {
         target: new BlockAPI(block),
@@ -1011,7 +1008,6 @@ export default class BlockManager extends Module {
     this.eventsDispatcher.emit(BlockChanged, {
       event: event as BlockMutationEventMap[Type],
     });
-
     return block;
   }
 }
