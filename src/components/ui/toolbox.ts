@@ -361,6 +361,7 @@ export default class Toolbox extends EventsDispatcher<ToolboxEventMap> {
       on: this.api.ui.nodes.redactor,
       handler: async (event: KeyboardEvent) => {
         event.preventDefault();
+        event.stopPropagation();
 
         const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
         const currentBlock = this.api.blocks.getBlockByIndex(currentBlockIndex);
