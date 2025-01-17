@@ -7,10 +7,9 @@
  */
 import Module from '../__module';
 import { OutputData } from '../../../types';
-import { SavedData, ValidatedData } from '../../../types/data-formats';
+import {CopyData, SavedData, ValidatedData} from '../../../types/data-formats';
 import Block from '../block';
 import * as _ from '../utils';
-import { sanitizeBlocks } from '../utils/sanitizer';
 
 declare const VERSION: string;
 
@@ -48,6 +47,21 @@ export default class Saver extends Module {
     }
   }
 
+  public async copySave(): Promise<CopyData[]> {
+    const { BlockManager, Tools } = this.Editor;
+    const blocks = BlockManager.blocks,
+      chainData = [];
+
+    try {
+      blocks.forEach((block: Block) => {
+        chainData.push(this.getCopySavedData(block));
+      });
+
+      return await Promise.all(chainData) as CopyData[];
+    } catch (e) {
+      _.logLabeled(`Saving failed due to the Error %o`, 'error', e);
+    }
+  }
   /**
    * Saves and validates
    *
@@ -62,6 +76,9 @@ export default class Saver extends Module {
       ...blockData,
       isValid,
     };
+  }
+  private async getCopySavedData(block: Block): Promise<CopyData> {
+    return await block.copySave();
   }
 
   /**

@@ -2,6 +2,7 @@ import { Saver } from '../../../../types/api';
 import { OutputData } from '../../../../types';
 import * as _ from '../../utils';
 import Module from '../../__module';
+import {CopyData} from "../../../../types/data-formats";
 
 /**
  * @class SaverAPI
@@ -16,6 +17,7 @@ export default class SaverAPI extends Module {
   public get methods(): Saver {
     return {
       save: (): Promise<OutputData> => this.save(),
+      copySave: (): Promise<CopyData[]> => this.copySave(),
     };
   }
 
@@ -34,5 +36,16 @@ export default class SaverAPI extends Module {
     }
 
     return this.Editor.Saver.save();
+  }
+  public copySave(): Promise<CopyData[]> {
+    const errorText = 'Editor\'s content can not be copy saved in read-only mode';
+
+    if (this.Editor.ReadOnly.isEnabled) {
+      _.logLabeled(errorText, 'warn');
+
+      return Promise.reject(new Error(errorText));
+    }
+
+    return this.Editor.Saver.copySave();
   }
 }
