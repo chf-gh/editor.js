@@ -9,7 +9,7 @@ import {
   ToolConfig
 } from '../../../types';
 
-import { SavedData } from '../../../types/data-formats';
+import {CopyData, SavedData} from '../../../types/data-formats';
 import $, { toggleEmptyMark } from '../dom';
 import * as _ from '../utils';
 import ApiModules from '../modules/api';
@@ -595,6 +595,21 @@ export default class Block extends EventsDispatcher<BlockEvents> {
       })
       .catch((error) => {
         _.log(`Saving process for ${this.name} tool failed due to the ${error}`, 'log', 'red');
+      });
+  }
+
+  /**
+   * 复制操作的数据
+   */
+  public async copySave(): Promise<undefined | CopyData> {
+    const extractedBlock = await this.toolInstance.copySave(this.pluginsContent as HTMLElement);
+
+    return Promise.resolve(extractedBlock)
+      .then((finishedExtraction) => {
+        return finishedExtraction;
+      })
+      .catch((error) => {
+        _.log(`Copy Saving process for ${this.name} tool failed due to the ${error}`, 'log', 'red');
       });
   }
 

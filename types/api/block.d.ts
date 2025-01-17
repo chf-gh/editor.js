@@ -1,5 +1,5 @@
 import {BlockToolData, ToolConfig, ToolboxConfigEntry} from '../tools';
-import {SavedData} from '../data-formats';
+import {CopyData, SavedData} from '../data-formats';
 
 /**
  * @interface BlockAPI Describes Block API methods and properties
@@ -67,6 +67,8 @@ export interface BlockAPI {
    * @return {Promise<void|SavedData>}
    */
   save(): Promise<void|SavedData>;
+
+  copySave(): Promise<void|CopyData>;
 
   /**
    * Validate Block data

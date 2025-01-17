@@ -6,6 +6,7 @@ import { API, BlockAPI, ToolboxConfig } from '../index';
 import { PasteEvent } from './paste-events';
 import { MoveEvent } from './hook-events';
 import { MenuConfig } from './menu-config';
+import {CopyData} from '../data-formats';
 
 /**
  * Describe Block Tool object
@@ -23,6 +24,12 @@ export interface BlockTool extends BaseTool {
    * @return {BlockToolData}
    */
   save(block: HTMLElement): BlockToolData;
+
+  /**
+   * 复制操作
+   * @param block
+   */
+  copySave(block: HTMLElement): CopyData;
 
   /**
    * Create Block's settings block

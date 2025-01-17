@@ -12,7 +12,6 @@ import Shortcuts from '../utils/shortcuts';
 
 import SelectionUtils from '../selection';
 import { SanitizerConfig } from '../../../types/configs';
-import { clean } from '../utils/sanitizer';
 
 /**
  *
@@ -289,35 +288,43 @@ export default class BlockSelection extends Module {
      */
     e.preventDefault();
 
-    const fakeClipboard = $.make('div');
-
-    this.selectedBlocks.forEach((block) => {
-      /**
-       * Make <p> tag that holds clean HTML
-       */
-      const cleanHTML = clean(block.holder.innerHTML, this.sanitizerConfig);
-      const fragment = $.make('p');
-
-      fragment.innerHTML = cleanHTML;
-      fakeClipboard.appendChild(fragment);
-    });
-
-    // todo-chf 如何解析为md语法的文本
-    const textPlain = Array.from(fakeClipboard.childNodes).map((node) => node.textContent)
-      .join('\n');
-    const textHTML = fakeClipboard.innerHTML;
-
-    e.clipboardData.setData('text/plain', textPlain);
-    e.clipboardData.setData('text/html', textHTML);
-
-    return Promise
-      .all(this.selectedBlocks.map((block) => block.save()))
-      .then(savedData => {
-        try {
-          e.clipboardData.setData(this.Editor.Paste.MIME_TYPE, JSON.stringify(savedData));
-        } catch (err) {
-          // In Firefox we can't set data in async function
-        }
+    return Promise.resolve()
+      .then(() => {
+        // 处理text/plain， text/html
+        Promise
+          .all(this.selectedBlocks.map((block) => block.copySave()))
+          .then(savedDataArr => {
+            try {
+              if (savedDataArr && savedDataArr.length > 0) {
+                let textPlain = '';
+                let textHtml = '';
+                savedDataArr.forEach(savedData => {
+                  if (savedData) {
+                    if (savedData.textPlain) {
+                      textPlain += `${savedData.textPlain}\n`;
+                    }
+                    textHtml += savedData.textHtml || '';
+                  }
+                });
+                e.clipboardData.setData('text/plain', textPlain);
+                e.clipboardData.setData('text/html', textHtml);
+              }
+            } catch (err) {
+              // In Firefox we can't set data in async function
+            }
+          });
+        Promise
+          .all(this.selectedBlocks.map((block) => block.save()))
+          .then(savedData => {
+            try {
+              e.clipboardData.setData(this.Editor.Paste.MIME_TYPE, JSON.stringify(savedData));
+            } catch (err) {
+              // In Firefox we can't set data in async function
+            }
+          });
+      })
+      .catch((error) => {
+        _.log(`Copy Saving process failed due to the ${error}`, 'log', 'red');
       });
   }
 

@@ -1,6 +1,6 @@
 import Block from './index';
 import { BlockToolData, ToolConfig, ToolboxConfigEntry } from '../../../types/tools';
-import { SavedData } from '../../../types/data-formats';
+import {CopyData, SavedData} from '../../../types/data-formats';
 import { BlockAPI as BlockAPIInterface } from '../../../types/api';
 
 /**
@@ -116,6 +116,12 @@ function BlockAPI(
      */
     save(): Promise<void|SavedData> {
       return block.save();
+    },
+    /**
+     * 复制操作
+     */
+    copySave(): Promise<void|CopyData> {
+      return block.copySave();
     },
 
     /**
