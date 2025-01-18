@@ -38,6 +38,20 @@ export default class DragNDrop extends Module {
   private enableModuleBindings(): void {
     const { UI } = this.Editor;
 
+    this.readOnlyMutableListeners.on(UI.nodes.holder, 'mousedown', async (dropEvent: DragEvent) => {
+      // 禁止选中文本进行拖动
+      if (window.getSelection) {
+        const selection = window.getSelection();
+
+        if (selection && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+
+          if (range && !range.collapsed) {
+            selection.removeAllRanges();
+          }
+        }
+      }
+    }, true);
     this.readOnlyMutableListeners.on(UI.nodes.holder, 'drop', async (dropEvent: DragEvent) => {
       await this.processDrop(dropEvent);
     }, true);
