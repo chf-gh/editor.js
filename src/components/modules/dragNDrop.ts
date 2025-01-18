@@ -111,7 +111,7 @@ export default class DragNDrop extends Module {
         // 拖动的是columns组件，禁止套娃
         const col = targetBlock.holder.closest('.cdx-columns_col');
         if (col) {
-          console.log('禁止套娃 drappppp');
+          // console.log('禁止套娃 drappppp');
           return;
         }
       }

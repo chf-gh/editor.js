@@ -65,7 +65,8 @@ export default class Caret extends Module {
       /**
        * Highlight Block
        */
-      BlockSelection.selectBlock(block);
+      // 不高亮了，否则图片拖动后会选中图片的block，2025年1月18日
+      // BlockSelection.selectBlock(block);
       BlockManager.currentBlock = block;
 
       return;
