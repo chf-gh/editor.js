@@ -91,6 +91,8 @@ export enum BlockToolAPI {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   ON_PASTE = 'onPaste',
   // eslint-disable-next-line @typescript-eslint/naming-convention
+  ON_PASTE_INLINE = 'onPasteInline',
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   AFTER_MERGE = 'afterMerge',
   // eslint-disable-next-line @typescript-eslint/naming-convention
   TOGGLE_SELECTED = 'toggleSelected',

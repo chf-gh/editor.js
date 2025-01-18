@@ -8,7 +8,7 @@ import {
   SanitizerConfig,
   SanitizerRule
 } from '../../../types';
-import Block from '../block';
+import Block, {BlockToolAPI} from '../block';
 import { SavedData } from '../../../types/data-formats';
 import { clean, sanitizeBlocks } from '../utils/sanitizer';
 import BlockTool from '../tools/block';
@@ -193,8 +193,6 @@ export default class Paste extends Module {
     }
 
     const editorJSData = dataTransfer.getData(this.MIME_TYPE);
-    const plainData = dataTransfer.getData('text/plain');
-    let htmlData = dataTransfer.getData('text/html');
 
     /**
      * If EditorJS json is passed, insert it
@@ -207,33 +205,44 @@ export default class Paste extends Module {
       } catch (e) { } // Do nothing and continue execution as usual if error appears
     }
 
+    const plainData = dataTransfer.getData('text/plain');
+    let htmlData = dataTransfer.getData('text/html');
+
     /**
      *  If text was drag'n'dropped, wrap content with P tag to insert it as the new Block
      */
     if (isDragNDrop && plainData.trim() && htmlData.trim()) {
       htmlData = '<p>' + (htmlData.trim() ? htmlData : plainData) + '</p>';
     }
-
-    /** Add all tags that can be substituted to sanitizer configuration */
-    const toolsTags = Object.keys(this.toolsTags).reduce((result, tag) => {
-      /**
-       * If Tool explicitly specifies sanitizer configuration for the tag, use it.
-       * Otherwise, remove all attributes
-       */
-      result[tag.toLowerCase()] = this.toolsTags[tag].sanitizationConfig ?? {};
-
-      return result;
-    }, {});
-
-    const customConfig = Object.assign({}, toolsTags, Tools.getAllInlineToolsSanitizeConfig(), { br: {} });
-    const cleanData = clean(htmlData, customConfig);
-
-    /** If there is no HTML or HTML string is equal to plain one, process it as plain text */
-    if (!cleanData.trim() || cleanData.trim() === plainData || !$.isHTMLString(cleanData)) {
-      await this.processText(plainData);
-    } else {
-      await this.processText(cleanData, true);
+    // 优先适用htmlData
+    if (htmlData) {
+      await this.processText(htmlData.trim()||'', true);
+    } else if (plainData) {
+      await this.processText(plainData.trim()||'');
     }
+    //return;
+
+    // /** Add all tags that can be substituted to sanitizer configuration */
+    // const toolsTags = Object.keys(this.toolsTags).reduce((result, tag) => {
+    //   /**
+    //    * If Tool explicitly specifies sanitizer configuration for the tag, use it.
+    //    * Otherwise, remove all attributes
+    //    */
+    //   result[tag.toLowerCase()] = this.toolsTags[tag].sanitizationConfig ?? {};
+    //
+    //   return result;
+    // }, {});
+    //
+    // const customConfig = Object.assign({}, toolsTags, Tools.getAllInlineToolsSanitizeConfig(), { br: {} });
+    // const cleanData = clean(htmlData, customConfig);
+    // console.log('cleanData=',cleanData)
+    //
+    // /** If there is no HTML or HTML string is equal to plain one, process it as plain text */
+    // if (!cleanData.trim() || cleanData.trim() === plainData || !$.isHTMLString(cleanData)) {
+    //   await this.processText(plainData);
+    // } else {
+    //   await this.processText(cleanData, true);
+    // }
   }
 
   /**
@@ -267,9 +276,9 @@ export default class Paste extends Module {
       async (content, i) => this.insertBlock(content, i === 0 && needToReplaceCurrentBlock)
     );
 
-    if (BlockManager.currentBlock) {
-      Caret.setToBlock(BlockManager.currentBlock, Caret.positions.END);
-    }
+    // if (BlockManager.currentBlock) {
+    //   Caret.setToBlock(BlockManager.currentBlock, Caret.positions.END);
+    // }
   }
 
   /**
@@ -616,6 +625,13 @@ export default class Paste extends Module {
     const wrapper = $.make('DIV');
 
     wrapper.innerHTML = innerHTML;
+    // 去除可能存在的无效文本的\n\n
+    if (wrapper.firstChild && ['\n', '\n\n'].includes(wrapper.firstChild.textContent)) {
+      wrapper.firstChild.remove();
+    }
+    if (wrapper.lastChild && ['\n', '\n\n'].includes(wrapper.lastChild.textContent)) {
+      wrapper.lastChild.remove();
+    }
 
     const nodes = this.getNodes(wrapper);
 
@@ -816,13 +832,15 @@ export default class Paste extends Module {
 
     /** If there is no pattern substitute - insert string as it is */
     if (BlockManager.currentBlock && BlockManager.currentBlock.currentInput) {
-      const currentToolSanitizeConfig = BlockManager.currentBlock.tool.baseSanitizeConfig;
-
-      document.execCommand(
-        'insertHTML',
-        false,
-        clean(content.innerHTML, currentToolSanitizeConfig)
-      );
+      // 调用block的方法来黏贴内联文本
+      BlockManager.currentBlock.call(BlockToolAPI.ON_PASTE_INLINE, dataToInsert.event);
+      // const currentToolSanitizeConfig = BlockManager.currentBlock.tool.baseSanitizeConfig;
+      //
+      // document.execCommand(
+      //   'insertHTML',
+      //   false,
+      //   clean(content.innerHTML, currentToolSanitizeConfig)
+      // );
     } else {
       this.insertBlock(dataToInsert);
     }
