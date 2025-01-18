@@ -161,9 +161,17 @@ export default class BlockEvents extends Module {
   public dragLeave(event: DragEvent): void {
     const block = this.Editor.BlockManager.getBlockByChildNode(event.target as Node);
     if (block) {
-      // 增加是否真正移出blcok的判断，防止拖入示意条闪烁
-      if ((!event.relatedTarget) || (!block.holder.contains(event.relatedTarget as Node))) {
+      // event.relatedTarget 指的是当前进入的元素
+      if ((!event.relatedTarget) ) {
+        // 增加是否真正移出blcok的判断，防止拖入示意条闪烁
         block.dropTarget = false;
+      } else if (event.relatedTarget.closest) {
+        // 如果距离最近的block不是当前block的holder，说明进入了columns中的block，需要去掉dropTarget，
+        // 不能使用block.holder.contains(event.relatedTarget as Node)判断是否仍然出在在block内部，因为columns存在block嵌套
+        const nearestBlock = event.relatedTarget.closest('.ce-block');
+        if (nearestBlock !== block.holder) {
+          block.dropTarget = false;
+        }
       }
     }
   }
