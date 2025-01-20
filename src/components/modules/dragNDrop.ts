@@ -38,7 +38,14 @@ export default class DragNDrop extends Module {
   private enableModuleBindings(): void {
     const { UI } = this.Editor;
 
-    this.readOnlyMutableListeners.on(UI.nodes.holder, 'mousedown', async (dropEvent: DragEvent) => {
+    this.readOnlyMutableListeners.on(UI.nodes.holder, 'mousedown', async (event: MouseEvent) => {
+      if (event.target && event.target.closest) {
+        const toolbar = event.target.closest(`.${this.Editor.InlineToolbar.CSS.inlineToolbar}`);
+        // 如果操作了内联按钮则选区不消失
+        if (toolbar) {
+          return;
+        }
+      }
       // 禁止选中文本进行拖动
       if (window.getSelection) {
         const selection = window.getSelection();
