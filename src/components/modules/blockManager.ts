@@ -355,7 +355,7 @@ export default class BlockManager extends Module {
       return block;
     }
     // console.log('call updateData');
-    block.update(data, tunes);
+    await block.update(data, tunes);
 
     // const existingData = await block.data;
     //

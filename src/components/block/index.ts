@@ -619,7 +619,12 @@ export default class Block extends EventsDispatcher<BlockEvents> {
    * 数据更新
    */
   public async update(data?: Partial<BlockToolData>, tunes?: {[name: string]: BlockTuneData}): Promise<void> {
-    await this.toolInstance.update(data, tunes);
+    return new Promise(async (resolve) => {
+      await this.toolInstance.update(data, tunes);
+      resolve();
+    }).catch((error) => {
+        _.log(`Copy Saving process for ${this.name} tool failed due to the ${error}`, 'log', 'red');
+      });
   }
 
   /**
