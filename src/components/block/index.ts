@@ -616,6 +616,13 @@ export default class Block extends EventsDispatcher<BlockEvents> {
   }
 
   /**
+   * 数据更新
+   */
+  public async update(data?: Partial<BlockToolData>, tunes?: {[name: string]: BlockTuneData}): Promise<void> {
+    await this.toolInstance.update(data, tunes);
+  }
+
+  /**
    * Uses Tool's validation method to check the correctness of output data
    * Tool's validation method is optional
    *

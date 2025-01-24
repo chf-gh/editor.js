@@ -111,7 +111,8 @@ export default class ModificationsObserver extends Module {
     }
     // 自定义内容修改的事件
     emitter.emit('editorMutate',{
-      event
+      event,
+      editorName: this.config.name
     });
 
     this.batchingOnChangeQueue.set(`block:${event.detail.target.id}:event:${event.type as BlockMutationType}`, event);

@@ -7,6 +7,7 @@ import { PasteEvent } from './paste-events';
 import { MoveEvent } from './hook-events';
 import { MenuConfig } from './menu-config';
 import {CopyData} from '../data-formats';
+import {BlockTuneData} from "../block-tunes/block-tune-data";
 
 /**
  * Describe Block Tool object
@@ -30,6 +31,13 @@ export interface BlockTool extends BaseTool {
    * @param block
    */
   copySave(block: HTMLElement): CopyData;
+
+  /**
+   * 数据更新
+   * @param data
+   * @param tunes
+   */
+  update(data?: Partial<BlockToolData>, tunes?: {[name: string]: BlockTuneData}): void;
 
   /**
    * Create Block's settings block

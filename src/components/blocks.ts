@@ -234,7 +234,10 @@ export default class Blocks {
     }
 
     const prevBlock = this.blocks[index];
+    // 使用 requestAnimationFrame 以确保更新在下一次绘制时发生
+    console.log('upd');
 
+    // 替换内容
     prevBlock.holder.replaceWith(block.holder);
 
     this.blocks[index] = block;

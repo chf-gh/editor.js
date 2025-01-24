@@ -10,7 +10,8 @@ export interface EditorConfig {
    * @deprecated property will be removed in the next major release, use holder instead
    */
   holderId?: string | HTMLElement;
-
+  // 编辑器名字，用来区分那个编辑器
+  name: string|undefined;
   /**
    * Element where Editor will be appended
    */

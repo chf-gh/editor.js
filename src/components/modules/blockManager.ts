@@ -354,25 +354,28 @@ export default class BlockManager extends Module {
     if (!data && !tunes) {
       return block;
     }
+    // console.log('call updateData');
+    block.update(data, tunes);
 
-    const existingData = await block.data;
-
-    const newBlock = this.composeBlock({
-      id: block.id,
-      tool: block.name,
-      data: Object.assign({}, existingData, data ?? {}),
-      tunes: tunes ?? block.tunes,
-    });
-
+    // const existingData = await block.data;
+    //
+    // const newBlock = this.composeBlock({
+    //   id: block.id,
+    //   tool: block.name,
+    //   data: Object.assign({}, existingData, data ?? {}),
+    //   tunes: tunes ?? block.tunes,
+    // });
+    //
     const blockIndex = this.getBlockIndex(block);
+    //
+    // this._blocks.replace(blockIndex, newBlock);
 
-    this._blocks.replace(blockIndex, newBlock);
 
-    this.blockDidMutated(BlockChangedMutationType, newBlock, {
+    this.blockDidMutated(BlockChangedMutationType, block, {
       index: blockIndex,
     });
 
-    return newBlock;
+    return block;
   }
 
   /**
