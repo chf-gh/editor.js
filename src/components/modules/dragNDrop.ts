@@ -1,6 +1,7 @@
 import SelectionUtils from '../selection';
 
 import Module from '../__module';
+import $ from "../dom";
 /**
  *
  */
@@ -52,8 +53,11 @@ export default class DragNDrop extends Module {
 
         if (selection && selection.rangeCount > 0) {
           const range = selection.getRangeAt(0);
-
-          if (range && !range.collapsed) {
+          if ($.isNativeInput(document.activeElement)) {
+            // textarea|input
+            document.activeElement.selectionStart = document.activeElement.selectionEnd; // 取消选区
+          } else if (range && !range.collapsed) {
+            // 普通的dom
             selection.removeAllRanges();
           }
         }
