@@ -28,8 +28,6 @@ export default class DragNDrop extends Module {
   public toggleReadOnly(readOnlyEnabled: boolean): void {
     if (readOnlyEnabled) {
       this.disableModuleBindings();
-      // 只读模式下也需要禁止文字拖动
-      this.removeSelectionForbiddenDrag();
     } else {
       this.enableModuleBindings();
     }
@@ -40,9 +38,6 @@ export default class DragNDrop extends Module {
    */
   private enableModuleBindings(): void {
     const { UI } = this.Editor;
-
-    // 清除选中区域，禁止拖动文字
-    this.removeSelectionForbiddenDrag();
 
     this.readOnlyMutableListeners.on(UI.nodes.holder, 'drop', async (dropEvent: DragEvent) => {
       await this.processDrop(dropEvent);
@@ -133,38 +128,5 @@ export default class DragNDrop extends Module {
    */
   private processDragOver(dragEvent: DragEvent): void {
     dragEvent.preventDefault();
-  }
-
-  /**
-   * 清除选中区域，禁止拖动文字
-   * @private
-   */
-  private removeSelectionForbiddenDrag(): void {
-    const { UI } = this.Editor;
-
-    this.readOnlyMutableListeners.on(UI.nodes.holder, 'mousedown', async (event: MouseEvent) => {
-      if (event.target && event.target.closest) {
-        const toolbar = event.target.closest(`.${this.Editor.InlineToolbar.CSS.inlineToolbar}`);
-        // 如果操作了内联按钮则选区不消失
-        if (toolbar) {
-          return;
-        }
-      }
-      // 禁止选中文本进行拖动
-      if (window.getSelection) {
-        const selection = window.getSelection();
-
-        if (selection && selection.rangeCount > 0) {
-          const range = selection.getRangeAt(0);
-          if ($.isNativeInput(document.activeElement)) {
-            // textarea|input
-            document.activeElement.selectionStart = document.activeElement.selectionEnd; // 取消选区
-          } else if (range && !range.collapsed) {
-            // 普通的dom
-            selection.removeAllRanges();
-          }
-        }
-      }
-    }, true);
   }
 }

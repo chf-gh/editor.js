@@ -2,6 +2,7 @@ import Module from '../__module';
 import Block from '../block';
 import SelectionUtils from '../selection';
 import * as _ from '../utils';
+import $ from '../dom';
 
 /**
  *
@@ -30,6 +31,8 @@ export default class CrossBlockSelection extends Module {
     this.listeners.on(document, 'mousedown', (event: MouseEvent) => {
       this.enableCrossBlockSelection(event);
     });
+    // 清除选中区域，禁止拖动文字
+    this.removeSelectionForbiddenDrag();
   }
 
   /**
@@ -153,9 +156,7 @@ export default class CrossBlockSelection extends Module {
     /**
      * Each mouse down on must disable selectAll state
      */
-    if (!SelectionUtils.isCollapsed) {
-      this.Editor.BlockSelection.clearSelection(event);
-    }
+    this.Editor.BlockSelection.clearSelection(event);
 
     /**
      * If mouse down is performed inside the editor, we should watch CBS
@@ -262,5 +263,38 @@ export default class CrossBlockSelection extends Module {
     }
     // 保存最后的下标
     this.endSelectedBlockIndex = targetIndex;
+  }
+
+  /**
+   * 清除选中区域，禁止拖动文字
+   * @private
+   */
+  private removeSelectionForbiddenDrag(): void {
+    const { UI } = this.Editor;
+
+    this.listeners.on(UI.nodes.holder, 'mousedown', async (event: MouseEvent) => {
+      if (event.target && event.target.closest) {
+        const toolbar = event.target.closest(`.${this.Editor.InlineToolbar.CSS.inlineToolbar}`);
+        // 如果操作了内联按钮则选区不消失
+        if (toolbar) {
+          return;
+        }
+      }
+      // 禁止选中文本进行拖动
+      if (window.getSelection) {
+        const selection = window.getSelection();
+
+        if (selection && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          if ($.isNativeInput(document.activeElement)) {
+            // textarea|input
+            document.activeElement.selectionStart = document.activeElement.selectionEnd; // 取消选区
+          } else if (range && !range.collapsed) {
+            // 普通的dom
+            selection.removeAllRanges();
+          }
+        }
+      }
+    }, true);
   }
 }
