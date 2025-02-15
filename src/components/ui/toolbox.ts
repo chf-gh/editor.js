@@ -446,7 +446,8 @@ export default class Toolbox extends EventsDispatcher<ToolboxEventMap> {
     newBlock.call(BlockToolAPI.APPEND_CALLBACK);
 
     this.api.caret.setToBlock(index);
-
+    // 添加后的回调
+    newBlock.call(BlockToolAPI.AFTER_ADD);
     this.emit(ToolboxEvent.BlockAdded, {
       block: newBlock,
     });

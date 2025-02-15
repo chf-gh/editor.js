@@ -96,6 +96,8 @@ export enum BlockToolAPI {
   AFTER_MERGE = 'afterMerge',
   // eslint-disable-next-line @typescript-eslint/naming-convention
   TOGGLE_SELECTED = 'toggleSelected',
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  AFTER_ADD = 'afterAdd',
 }
 
 /**
