@@ -55,11 +55,15 @@ export default class RectangleSelection extends Module {
   private readonly HEIGHT_OF_SCROLL_ZONE = 100;
 
   /**
-   *  Scroll zone type indicators
+   * 移动速度因子
+   * @private
    */
-  private readonly BOTTOM_SCROLL_ZONE = 1;
-  private readonly TOP_SCROLL_ZONE = 2;
-
+  private speedFactory = 1;
+  /**
+   * 移动速度
+   * @private
+   */
+  private speed = 4;
   /**
    * Id of main button for event.button
    */
@@ -70,15 +74,11 @@ export default class RectangleSelection extends Module {
    */
   private mousedown = false;
 
-  /**
-   *  Is scrolling now
-   */
-  private isScrolling = false;
 
   /**
    *  Mouse is in scroll zone
    */
-  private inScrollZone: number | null = null;
+  private inScrollZone: boolean = false;
 
   /**
    *  Coords of rect
@@ -179,6 +179,9 @@ export default class RectangleSelection extends Module {
       return;
     }
 
+    // 根据显示器的分辨率（宽度）进行调整，保证滚动速度一致
+    this.speedFactory = window.innerHeight / 768; // 假设窗口高度768为标准
+
     this.mousedown = true;
     this.startX = event.pageX + this.scrollContainer.scrollLeft;
     this.startY = event.pageY + this.scrollContainer.scrollTop;
@@ -188,6 +191,7 @@ export default class RectangleSelection extends Module {
    * Clear all params to end selection
    */
   public endSelection(): void {
+    this.speedFactory = 1;
     this.mousedown = false;
     this.startX = 0;
     this.startY = 0;
@@ -272,7 +276,7 @@ export default class RectangleSelection extends Module {
    */
   private processMouseMove(mouseEvent: MouseEvent): void {
     this.changingRectangle(mouseEvent);
-    this.scrollByZones(mouseEvent.clientY);
+    this.scrollByZones(mouseEvent);
   }
 
   /**
@@ -303,25 +307,29 @@ export default class RectangleSelection extends Module {
    *
    * @param {number} clientY - Y coord of mouse
    */
-  private scrollByZones(clientY): void {
-    this.inScrollZone = null;
-    if (clientY <= this.HEIGHT_OF_SCROLL_ZONE) {
-      this.inScrollZone = this.TOP_SCROLL_ZONE;
+  private scrollByZones(mouseEvent: MouseEvent): void {
+    this.inScrollZone = false;
+    const distanceFromTop = mouseEvent.clientY;  // 距离页面顶部的距离
+    const distanceFromBottom = window.innerHeight - mouseEvent.clientY;  // 距离页面底部的距离
+
+    let deltaY = 0;  // 初始垂直移动值
+
+    // 如果鼠标距离顶部小于 100px，则向上滚动
+    if (distanceFromTop < this.HEIGHT_OF_SCROLL_ZONE) {
+      deltaY = -(this.HEIGHT_OF_SCROLL_ZONE - distanceFromTop);  // 根据距离顶部的距离计算滚动速度
+      this.inScrollZone = true;
     }
-    if (window.innerHeight - clientY <= this.HEIGHT_OF_SCROLL_ZONE) {
-      this.inScrollZone = this.BOTTOM_SCROLL_ZONE;
+    // 如果鼠标距离底部小于 200px，则向下滚动
+    else if (distanceFromBottom < this.HEIGHT_OF_SCROLL_ZONE) {
+      deltaY = (this.HEIGHT_OF_SCROLL_ZONE - distanceFromBottom);  // 根据距离底部的距离计算滚动速度
+      this.inScrollZone = true;
     }
 
     if (!this.inScrollZone) {
-      this.isScrolling = false;
-
       return;
     }
 
-    if (!this.isScrolling) {
-      this.scrollVertical(this.inScrollZone === this.TOP_SCROLL_ZONE ? -this.SCROLL_SPEED : this.SCROLL_SPEED);
-      this.isScrolling = true;
-    }
+    this.scrollVertical((deltaY/this.HEIGHT_OF_SCROLL_ZONE)*this.speed* this.speedFactory);
   }
 
   /**
@@ -357,6 +365,7 @@ export default class RectangleSelection extends Module {
    * @param {number} speed - speed of scrolling
    */
   private scrollVertical(speed): void {
+    console.log('speed==',speed);
     if (!(this.inScrollZone && this.mousedown)) {
       return;
     }
@@ -428,7 +437,7 @@ export default class RectangleSelection extends Module {
    */
   private inverseSelection(): void {
     const firstBlockInStack = this.Editor.BlockManager.getBlockByIndex(this.stackOfSelected[0]);
-    const isSelectedMode = firstBlockInStack.selected;
+    const isSelectedMode = firstBlockInStack?.selected || false;
 
     if (this.rectCrossesBlocks && !isSelectedMode) {
       for (const it of this.stackOfSelected) {
@@ -472,9 +481,10 @@ export default class RectangleSelection extends Module {
    * @returns {object} index - index next Block, leftPos - start of left border of Block, rightPos - right border
    */
   private genInfoForMouseSelection(): {index: number; leftPos: number; rightPos: number} {
-    const widthOfRedactor = document.body.offsetWidth;
+    // const widthOfRedactor = document.body.offsetWidth;
+    const widthOfRedactor = this.scrollContainer.offsetWidth;
     const centerOfRedactor = widthOfRedactor / 2;
-    const Y = this.mouseY + this.scrollContainer.scrollTop - window.scrollY;
+    const Y = this.mouseY - window.scrollY;
     const elementUnderMouse = document.elementFromPoint(centerOfRedactor, Y);
     const blockInCurrentPos = this.Editor.BlockManager.getBlockByChildNode(elementUnderMouse);
     let index;
@@ -482,6 +492,7 @@ export default class RectangleSelection extends Module {
     if (blockInCurrentPos !== undefined) {
       index = this.Editor.BlockManager.blocks.findIndex((block) => block.holder === blockInCurrentPos.holder);
     }
+    console.log('index==',index);
     const contentElement = this.Editor.BlockManager.lastBlock.holder.querySelector('.' + Block.CSS.content);
     const centerOfBlock = Number.parseInt(window.getComputedStyle(contentElement).width, 10) / 2;
     const leftPos = centerOfRedactor - centerOfBlock;

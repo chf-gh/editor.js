@@ -22,12 +22,26 @@ export default class CrossBlockSelection extends Module {
   // 最后一个选中的block的下标
   private endSelectedBlockIndex: number;
 
-  // 选中滚动时任务id
-  private intervalTask: number ;
-  // 选中滚动的值
-  private scrollValue: number ;
   // 滚动的容器
   private scrollContainer: HTMLElement;
+  /**
+   *  Mouse is in scroll zone
+   */
+  private inScrollZone: boolean = false;
+  /**
+   * 移动速度因子
+   * @private
+   */
+  private speedFactory = 1;
+  /**
+   * 移动速度
+   * @private
+   */
+  private speed = 4;
+  /**
+   *  Mouse is clamped
+   */
+  private mousedown = false;
   /**
    * Module preparation
    *
@@ -51,6 +65,7 @@ export default class CrossBlockSelection extends Module {
     if (event.button !== _.mouseButtons.LEFT) {
       return;
     }
+    this.mousedown = true;
 
     const { BlockManager } = this.Editor;
 
@@ -58,6 +73,8 @@ export default class CrossBlockSelection extends Module {
     this.firstSelectedBlockIndex = BlockManager.getBlockIndex(this.firstSelectedBlock);
     this.endSelectedBlockIndex = this.firstSelectedBlockIndex;
     this.lastSelectedBlock = this.firstSelectedBlock;
+    // 根据显示器的分辨率（宽度）进行调整，保证滚动速度一致
+    this.speedFactory = window.innerHeight / 768; // 假设窗口高度768为标准
 
     this.listeners.on(document, 'mouseover', this.onMouseOver);
     this.listeners.on(document, 'mouseup', this.onMouseUp);
@@ -181,6 +198,7 @@ export default class CrossBlockSelection extends Module {
 
 
   private onMouseMove = (e: MouseEvent): void => {
+    this.inScrollZone = false;
     const scrollThreshold = 100;
     // 计算鼠标距离页面顶部和底部的距离
     const mouseY = e.clientY;
@@ -189,47 +207,35 @@ export default class CrossBlockSelection extends Module {
 
     let deltaY = 0;  // 初始垂直移动值
 
-    // 如果鼠标距离顶部小于 200px，则向上滚动
+    // 如果鼠标距离顶部小于 100px，则向上滚动
     if (distanceFromTop < scrollThreshold) {
-      deltaY = -(scrollThreshold - distanceFromTop) * 0.5;  // 根据距离顶部的距离计算滚动速度
+      deltaY = -(scrollThreshold - distanceFromTop);
+      this.inScrollZone = true;
     }
     // 如果鼠标距离底部小于 200px，则向下滚动
     else if (distanceFromBottom < scrollThreshold) {
-      deltaY = (scrollThreshold - distanceFromBottom) * 0.5;  // 根据距离底部的距离计算滚动速度
+      deltaY = (scrollThreshold - distanceFromBottom);
+      this.inScrollZone = true;
+    }
+    if (!this.inScrollZone) {
+      return;
     }
 
-    // 如果需要滚动，启动平滑滚动
-    if (deltaY !== 0) {
-      if (this.scrollValue !== deltaY) {
-        this.scrollValue = deltaY;
-        if (this.intervalTask !== null) {
-          clearInterval(this.intervalTask);
-        }
-        this.intervalTask = setInterval(() => {
-          if (this.scrollContainer) {
-            window.requestAnimationFrame(() => {
-              this.scrollContainer.scrollBy(0, deltaY);
-            });
-          }
-        }, 16); //每16毫秒更新一次，相当于60帧/秒
-      }
-    } else {
-      if (this.intervalTask !== null) {
-        clearInterval(this.intervalTask);
-      }
-    }
+    this.scrollVertical((deltaY/scrollThreshold)*this.speed* this.speedFactory);
   };
 
-  /**
-   * 清空scroll的任务
-   * @private
-   */
-  private scrollClear(): void {
-    if (this.intervalTask !== null) {
-      clearInterval(this.intervalTask);
+  private scrollVertical(speed): void {
+    console.log('speed==',speed);
+    if (!(this.inScrollZone && this.mousedown)) {
+      return;
     }
-    this.intervalTask = null;
+
+    this.scrollContainer.scrollBy(0, speed);
+    setTimeout(() => {
+      this.scrollVertical(speed);
+    }, 0);
   }
+
   /**
    * Mouse up event handler.
    * Removes the listeners
@@ -238,7 +244,7 @@ export default class CrossBlockSelection extends Module {
     this.listeners.off(document, 'mouseover', this.onMouseOver);
     this.listeners.off(document, 'mouseup', this.onMouseUp);
     this.listeners.off(document, 'mousemove', this.onMouseMove);
-    this.scrollClear();
+    this.mousedown = false;
   };
 
   /**
