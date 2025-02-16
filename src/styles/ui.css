@@ -68,7 +68,7 @@
 
     &__rectangle {
        position: absolute;
-       pointer-events: none;
+       /*pointer-events: none;*/
        background-color: rgba(46, 170, 220, 0.2);
        border: 1px solid transparent;
     }
