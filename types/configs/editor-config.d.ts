@@ -16,6 +16,10 @@ export interface EditorConfig {
    * Element where Editor will be appended
    */
   holder?: string | HTMLElement;
+  /**
+   * scroll的容器
+   */
+  scrollHolder: string | HTMLElement;
 
   /**
    * If true, set caret at the first Block after Editor is ready

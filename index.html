@@ -26,7 +26,9 @@
       </div>
     </div>
     <div class="ce-example__content" >
-      <div id="editorjs"></div>
+      <div id="scrollContainer" style="height: 500px;overflow-y: auto;">
+        <div id="editorjs"></div>
+      </div>
       <div class="ce-example__button" id="saveButton">
         editor.save()
       </div>
@@ -115,7 +117,7 @@
        * Enable/Disable the read only mode
        */
       readOnly: false,
-
+      scrollHolder: 'scrollContainer',
       /**
        * Wrapper of Editor
        */

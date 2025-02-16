@@ -52,7 +52,7 @@ export default class RectangleSelection extends Module {
   /**
    *  Height of scroll zone on boundary of screen
    */
-  private readonly HEIGHT_OF_SCROLL_ZONE = 40;
+  private readonly HEIGHT_OF_SCROLL_ZONE = 100;
 
   /**
    *  Scroll zone type indicators
@@ -108,13 +108,16 @@ export default class RectangleSelection extends Module {
    */
   private listenerIds: string[] = [];
 
+  // 滚动的容器
+  private scrollContainer: HTMLElement;
   /**
    * Module Preparation
    * Creating rect and hang handlers
    */
   public prepare(): void {
-    const { rectangleSelection } = this.config;
+    const { rectangleSelection, scrollHolder, holder } = this.config;
 
+    this.scrollContainer = $.getHolder(scrollHolder) || $.getHolder(holder);
     if (!rectangleSelection) {
       return;
     }
@@ -305,7 +308,7 @@ export default class RectangleSelection extends Module {
     if (clientY <= this.HEIGHT_OF_SCROLL_ZONE) {
       this.inScrollZone = this.TOP_SCROLL_ZONE;
     }
-    if (document.documentElement.clientHeight - clientY <= this.HEIGHT_OF_SCROLL_ZONE) {
+    if (window.innerHeight - clientY <= this.HEIGHT_OF_SCROLL_ZONE) {
       this.inScrollZone = this.BOTTOM_SCROLL_ZONE;
     }
 
@@ -357,10 +360,12 @@ export default class RectangleSelection extends Module {
     if (!(this.inScrollZone && this.mousedown)) {
       return;
     }
-    const lastOffset = window.pageYOffset;
+    // const lastOffset = window.pageYOffset;
+    const lastOffset = this.scrollContainer.scrollTop;
 
-    window.scrollBy(0, speed);
-    this.mouseY += window.pageYOffset - lastOffset;
+    this.scrollContainer.scrollBy(0, speed);
+    this.mouseY += this.scrollContainer.scrollTop - lastOffset;
+    console.log('this.mouseY==========',this.mouseY,this.scrollContainer.scrollTop)
     setTimeout(() => {
       this.scrollVertical(speed);
     }, 0);
@@ -375,7 +380,8 @@ export default class RectangleSelection extends Module {
     if (!this.mousedown) {
       return;
     }
-
+    console.log('event.pageX=',event.pageX)
+    console.log('event.pageY=',event.pageY)
     if (event.pageY !== undefined) {
       this.mouseX = event.pageX;
       this.mouseY = event.pageY;
@@ -418,10 +424,10 @@ export default class RectangleSelection extends Module {
    * Shrink rect to singular point
    */
   private shrinkRectangleToPoint(): void {
-    this.overlayRectangle.style.left = `${this.startX - window.pageXOffset}px`;
-    this.overlayRectangle.style.top = `${this.startY - window.pageYOffset}px`;
-    this.overlayRectangle.style.bottom = `calc(100% - ${this.startY - window.pageYOffset}px`;
-    this.overlayRectangle.style.right = `calc(100% - ${this.startX - window.pageXOffset}px`;
+    this.overlayRectangle.style.left = `${this.startX - this.scrollContainer.scrollLeft}px`;
+    this.overlayRectangle.style.top = `${this.startY - this.scrollContainer.scrollTop}px`;
+    this.overlayRectangle.style.bottom = `calc(100% - ${this.startY - this.scrollContainer.scrollTop}px`;
+    this.overlayRectangle.style.right = `calc(100% - ${this.startX - this.scrollContainer.scrollLeft}px`;
   }
 
   /**
@@ -451,19 +457,20 @@ export default class RectangleSelection extends Module {
     // Depending on the position of the mouse relative to the starting point,
     // change this.e distance from the desired edge of the screen*/
     if (this.mouseY >= this.startY) {
-      this.overlayRectangle.style.top = `${this.startY - window.pageYOffset}px`;
-      this.overlayRectangle.style.bottom = `calc(100% - ${this.mouseY - window.pageYOffset}px`;
+      this.overlayRectangle.style.top = `${this.startY - this.scrollContainer.scrollTop}px`;
+      console.log('this.mouseY - this.scrollContainer.scrollTop==',this.mouseY,this.scrollContainer.scrollTop, this.mouseY- this.scrollContainer.scrollTop)
+      this.overlayRectangle.style.bottom = `calc(100% - ${this.mouseY - this.scrollContainer.scrollTop}px`;
     } else {
-      this.overlayRectangle.style.bottom = `calc(100% - ${this.startY - window.pageYOffset}px`;
-      this.overlayRectangle.style.top = `${this.mouseY - window.pageYOffset}px`;
+      this.overlayRectangle.style.bottom = `calc(100% - ${this.startY - this.scrollContainer.scrollTop}px`;
+      this.overlayRectangle.style.top = `${this.mouseY - this.scrollContainer.scrollTop}px`;
     }
 
     if (this.mouseX >= this.startX) {
-      this.overlayRectangle.style.left = `${this.startX - window.pageXOffset}px`;
-      this.overlayRectangle.style.right = `calc(100% - ${this.mouseX - window.pageXOffset}px`;
+      this.overlayRectangle.style.left = `${this.startX - this.scrollContainer.scrollLeft}px`;
+      this.overlayRectangle.style.right = `calc(100% - ${this.mouseX - this.scrollContainer.scrollLeft}px`;
     } else {
-      this.overlayRectangle.style.right = `calc(100% - ${this.startX - window.pageXOffset}px`;
-      this.overlayRectangle.style.left = `${this.mouseX - window.pageXOffset}px`;
+      this.overlayRectangle.style.right = `calc(100% - ${this.startX - this.scrollContainer.scrollLeft}px`;
+      this.overlayRectangle.style.left = `${this.mouseX - this.scrollContainer.scrollLeft}px`;
     }
   }
 
@@ -475,7 +482,7 @@ export default class RectangleSelection extends Module {
   private genInfoForMouseSelection(): {index: number; leftPos: number; rightPos: number} {
     const widthOfRedactor = document.body.offsetWidth;
     const centerOfRedactor = widthOfRedactor / 2;
-    const Y = this.mouseY - window.pageYOffset;
+    const Y = this.mouseY - this.scrollContainer.scrollTop;
     const elementUnderMouse = document.elementFromPoint(centerOfRedactor, Y);
     const blockInCurrentPos = this.Editor.BlockManager.getBlockByChildNode(elementUnderMouse);
     let index;
