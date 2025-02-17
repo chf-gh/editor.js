@@ -225,7 +225,6 @@ export default class CrossBlockSelection extends Module {
   };
 
   private scrollVertical(speed): void {
-    console.log('speed==',speed);
     if (!(this.inScrollZone && this.mousedown)) {
       return;
     }
