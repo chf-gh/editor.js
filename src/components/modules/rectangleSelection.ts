@@ -365,7 +365,6 @@ export default class RectangleSelection extends Module {
    * @param {number} speed - speed of scrolling
    */
   private scrollVertical(speed): void {
-    console.log('speed==',speed);
     if (!(this.inScrollZone && this.mousedown)) {
       return;
     }
@@ -485,14 +484,14 @@ export default class RectangleSelection extends Module {
     const widthOfRedactor = this.scrollContainer.offsetWidth;
     const centerOfRedactor = widthOfRedactor / 2;
     const Y = this.mouseY - window.scrollY;
-    const elementUnderMouse = document.elementFromPoint(centerOfRedactor, Y);
+    const X = centerOfRedactor + (this.scrollContainer.getBoundingClientRect().left || 0);
+    const elementUnderMouse = document.elementFromPoint(X, Y);
     const blockInCurrentPos = this.Editor.BlockManager.getBlockByChildNode(elementUnderMouse);
     let index;
 
     if (blockInCurrentPos !== undefined) {
       index = this.Editor.BlockManager.blocks.findIndex((block) => block.holder === blockInCurrentPos.holder);
     }
-    console.log('index==',index);
     const contentElement = this.Editor.BlockManager.lastBlock.holder.querySelector('.' + Block.CSS.content);
     const centerOfBlock = Number.parseInt(window.getComputedStyle(contentElement).width, 10) / 2;
     const leftPos = centerOfRedactor - centerOfBlock;
